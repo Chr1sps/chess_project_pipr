@@ -1,12 +1,12 @@
 from chess_classes import (
+    PAWN,
+    KNIGHT,
+    BISHOP,
+    ROOK,
+    QUEEN,
+    KING,
     CoordinatesOutOfBoundsException,
     ChessPiece,
-    Pawn,
-    Knight,
-    Bishop,
-    Rook,
-    Queen,
-    King,
     ChessMove,
     ChessState,
 )
@@ -16,22 +16,23 @@ from pytest import raises
 
 def test_chess_piece_init_in_bounds():
     player_1 = Player("1")
-    chess_piece = ChessPiece(1, 1, player_1)
+    chess_piece = ChessPiece(PAWN, 1, 1, player_1)
     assert chess_piece.column() == 1
     assert chess_piece.row() == 1
     assert chess_piece.player() == player_1
+    assert chess_piece.type() == PAWN
 
 
 def test_chess_piece_init_out_of_bounds():
     with raises(CoordinatesOutOfBoundsException):
         player_1 = Player("1")
-        chess_piece = ChessPiece(-1, 1, player_1)
+        chess_piece = ChessPiece(PAWN, -1, 1, player_1)
 
 
 def test_pawn_moves_no_edge_cases():
     player_1 = Player("1")
     player_2 = Player("2")
-    pawn = Pawn(3, 3, player_1, False)
+    pawn = ChessPiece(PAWN, 3, 3, player_1, False)
     board = (
         [[None for _ in range(8)] for _ in range(3)]
         + [[pawn if column == 3 else None for column in range(8)]]
@@ -57,7 +58,7 @@ def test_pawn_moves_no_edge_cases():
 def test_pawn_moves_next_to_the_edge():
     player_1 = Player("1")
     player_2 = Player("2")
-    pawn = Pawn(0, 3, player_1, False)
+    pawn = ChessPiece(PAWN, 0, 3, player_1, False)
     board = (
         [[None for _ in range(8)] for _ in range(3)]
         + [[pawn if column == 0 else None for column in range(8)]]
@@ -83,7 +84,7 @@ P1                      \n\
 def test_pawn_moves_first_move():
     player_1 = Player("1")
     player_2 = Player("2")
-    pawn = Pawn(3, 3, player_1)
+    pawn = ChessPiece(PAWN, 3, 3, player_1)
     board = (
         [[None for _ in range(8)]]
         + [[pawn if column == 3 else None for column in range(8)]]
@@ -109,8 +110,8 @@ def test_pawn_moves_first_move():
 def test_pawn_moves_en_passant():
     player_1 = Player("1")
     player_2 = Player("2")
-    pawn_1 = Pawn(3, 4, player_1, False)
-    pawn_2 = Pawn(4, 4, player_2, False, True)
+    pawn_1 = ChessPiece(PAWN, 3, 4, player_1, False)
+    pawn_2 = ChessPiece(PAWN, 4, 4, player_2, False, True)
     board = (
         [[None for _ in range(8)] for _ in range(4)]
         + [[None, None, None, pawn_1, pawn_2, None, None, None]]
@@ -136,8 +137,8 @@ def test_pawn_moves_en_passant():
 def test_pawn_moves_can_take():
     player_1 = Player("1")
     player_2 = Player("2")
-    pawn_1 = Pawn(3, 4, player_1, False)
-    pawn_2 = Pawn(4, 5, player_2, False)
+    pawn_1 = ChessPiece(PAWN, 3, 4, player_1, False)
+    pawn_2 = ChessPiece(PAWN, 4, 5, player_2, False)
     board = (
         [[None for _ in range(8)] for _ in range(4)]
         + [[pawn_1 if column == 3 else None for column in range(8)]]
@@ -164,8 +165,8 @@ def test_pawn_moves_can_take():
 def test_pawn_moves_blocked():
     player_1 = Player("1")
     player_2 = Player("2")
-    pawn_1 = Pawn(3, 3, player_1, False)
-    pawn_2 = Pawn(3, 4, player_1, False)
+    pawn_1 = ChessPiece(PAWN, 3, 3, player_1, False)
+    pawn_2 = ChessPiece(PAWN, 3, 4, player_1, False)
     board = (
         [[None for _ in range(8)] for _ in range(3)]
         + [[pawn_1 if column == 3 else None for column in range(8)]]
@@ -191,9 +192,9 @@ def test_pawn_moves_blocked():
 def test_pawn_moves_blocked_en_passant():
     player_1 = Player("1")
     player_2 = Player("2")
-    pawn_1 = Pawn(3, 3, player_1, False)
-    pawn_2 = Pawn(4, 4, player_1, False)
-    pawn_3 = Pawn(4, 3, player_2, False)
+    pawn_1 = ChessPiece(PAWN, 3, 3, player_1, False)
+    pawn_2 = ChessPiece(PAWN, 4, 4, player_1, False)
+    pawn_3 = ChessPiece(PAWN, 4, 3, player_2, False)
     board = (
         [[None for _ in range(8)] for _ in range(3)]
         + [[None, None, None, pawn_1, pawn_3, None, None, None]]
@@ -220,7 +221,7 @@ def test_pawn_moves_blocked_en_passant():
 def test_knight_moves_no_edge_cases():
     player_1 = Player("1")
     player_2 = Player("2")
-    knight = Knight(3, 4, player_1)
+    knight = ChessPiece(KNIGHT, 3, 4, player_1)
     board = (
         [[None for _ in range(8)] for _ in range(4)]
         + [[knight if column == 3 else None for column in range(8)]]
@@ -255,7 +256,7 @@ def test_knight_moves_no_edge_cases():
 def test_knight_moves_corner():
     player_1 = Player("1")
     player_2 = Player("2")
-    knight = Knight(0, 0, player_1)
+    knight = ChessPiece(KNIGHT, 0, 0, player_1)
     board = [[knight] + [None for _ in range(7)]] + [
         [None for _ in range(8)] for _ in range(7)
     ]
@@ -279,8 +280,8 @@ N1                      \n"
 def test_knight_moves_can_take():
     player_1 = Player("1")
     player_2 = Player("2")
-    knight_1 = Knight(3, 4, player_1)
-    knight_2 = Knight(2, 6, player_2)
+    knight_1 = ChessPiece(KNIGHT, 3, 4, player_1)
+    knight_2 = ChessPiece(KNIGHT, 2, 6, player_2)
     board = (
         [[None for _ in range(8)] for _ in range(4)]
         + [[knight_1 if column == 3 else None for column in range(8)]]
@@ -317,8 +318,8 @@ def test_knight_moves_can_take():
 def test_knight_moves_blocked():
     player_1 = Player("1")
     player_2 = Player("2")
-    knight_1 = Knight(3, 4, player_1)
-    knight_2 = Knight(2, 6, player_1)
+    knight_1 = ChessPiece(KNIGHT, 3, 4, player_1)
+    knight_2 = ChessPiece(KNIGHT, 2, 6, player_1)
     board = (
         [[None for _ in range(8)] for _ in range(4)]
         + [[knight_1 if column == 3 else None for column in range(8)]]
@@ -354,11 +355,11 @@ def test_knight_moves_blocked():
 def test_bishop_moves_blocked():
     player_1 = Player("1")
     player_2 = Player("2")
-    bishop_1 = Bishop(3, 3, player_1)
-    bishop_2 = Bishop(1, 1, player_1)
-    bishop_3 = Bishop(5, 5, player_1)
-    bishop_4 = Bishop(1, 5, player_1)
-    bishop_5 = Bishop(5, 1, player_1)
+    bishop_1 = ChessPiece(BISHOP, 3, 3, player_1)
+    bishop_2 = ChessPiece(BISHOP, 1, 1, player_1)
+    bishop_3 = ChessPiece(BISHOP, 5, 5, player_1)
+    bishop_4 = ChessPiece(BISHOP, 1, 5, player_1)
+    bishop_5 = ChessPiece(BISHOP, 5, 1, player_1)
     board = (
         [[None for _ in range(8)]]
         + [[None, bishop_2, None, None, None, bishop_5, None, None]]
@@ -393,11 +394,11 @@ def test_bishop_moves_blocked():
 def test_bishop_moves_can_take():
     player_1 = Player("1")
     player_2 = Player("2")
-    bishop_1 = Bishop(3, 3, player_1)
-    bishop_2 = Bishop(1, 1, player_2)
-    bishop_3 = Bishop(5, 5, player_2)
-    bishop_4 = Bishop(1, 5, player_2)
-    bishop_5 = Bishop(5, 1, player_2)
+    bishop_1 = ChessPiece(BISHOP, 3, 3, player_1)
+    bishop_2 = ChessPiece(BISHOP, 1, 1, player_2)
+    bishop_3 = ChessPiece(BISHOP, 5, 5, player_2)
+    bishop_4 = ChessPiece(BISHOP, 1, 5, player_2)
+    bishop_5 = ChessPiece(BISHOP, 5, 1, player_2)
     board = (
         [[None for _ in range(8)]]
         + [[None, bishop_2, None, None, None, bishop_5, None, None]]
@@ -436,7 +437,7 @@ def test_bishop_moves_can_take():
 def test_bishop_moves_no_edge_cases():
     player_1 = Player("1")
     player_2 = Player("2")
-    bishop = Bishop(3, 3, player_1)
+    bishop = ChessPiece(BISHOP, 3, 3, player_1)
     board = (
         [[None for _ in range(8)] for _ in range(3)]
         + [[bishop if column == 3 else None for column in range(8)]]
@@ -476,7 +477,7 @@ def test_bishop_moves_no_edge_cases():
 def test_rook_moves_no_edge_cases():
     player_1 = Player("1")
     player_2 = Player("2")
-    rook = Rook(3, 3, player_1)
+    rook = ChessPiece(ROOK, 3, 3, player_1)
     board = (
         [[None for _ in range(8)] for _ in range(3)]
         + [[rook if column == 3 else None for column in range(8)]]
@@ -517,11 +518,11 @@ def test_rook_moves_no_edge_cases():
 def test_rook_moves_blocked():
     player_1 = Player("1")
     player_2 = Player("2")
-    rook_1 = Rook(3, 3, player_1)
-    rook_2 = Rook(3, 1, player_1)
-    rook_3 = Rook(1, 3, player_1)
-    rook_4 = Rook(5, 3, player_1)
-    rook_5 = Rook(3, 5, player_1)
+    rook_1 = ChessPiece(ROOK, 3, 3, player_1)
+    rook_2 = ChessPiece(ROOK, 3, 1, player_1)
+    rook_3 = ChessPiece(ROOK, 1, 3, player_1)
+    rook_4 = ChessPiece(ROOK, 5, 3, player_1)
+    rook_5 = ChessPiece(ROOK, 3, 5, player_1)
     board = (
         [[None for _ in range(8)]]
         + [[rook_2 if column == 3 else None for column in range(8)]]
@@ -556,11 +557,11 @@ def test_rook_moves_blocked():
 def test_rook_moves_can_take():
     player_1 = Player("1")
     player_2 = Player("2")
-    rook_1 = Rook(3, 3, player_1)
-    rook_2 = Rook(3, 1, player_2)
-    rook_3 = Rook(1, 3, player_2)
-    rook_4 = Rook(5, 3, player_2)
-    rook_5 = Rook(3, 5, player_2)
+    rook_1 = ChessPiece(ROOK, 3, 3, player_1)
+    rook_2 = ChessPiece(ROOK, 3, 1, player_2)
+    rook_3 = ChessPiece(ROOK, 1, 3, player_2)
+    rook_4 = ChessPiece(ROOK, 5, 3, player_2)
+    rook_5 = ChessPiece(ROOK, 3, 5, player_2)
     board = (
         [[None for _ in range(8)]]
         + [[rook_2 if column == 3 else None for column in range(8)]]
@@ -599,7 +600,7 @@ def test_rook_moves_can_take():
 def test_queen_moves_no_edge_cases():
     player_1 = Player("1")
     player_2 = Player("2")
-    queen = Queen(3, 3, player_1)
+    queen = ChessPiece(QUEEN, 3, 3, player_1)
     board = (
         [[None for _ in range(8)] for _ in range(3)]
         + [[queen if column == 3 else None for column in range(8)]]
@@ -653,7 +654,7 @@ def test_queen_moves_no_edge_cases():
 def test_king_moves_no_edge_cases():
     player_1 = Player("1")
     player_2 = Player("2")
-    king = King(3, 3, player_1, False)
+    king = ChessPiece(KING, 3, 3, player_1, False)
     board = (
         [[None for _ in range(8)] for _ in range(3)]
         + [[king if column == 3 else None for column in range(8)]]

@@ -10,27 +10,53 @@ This file will likely be broken down into several
 subfiles corresponding to each class.
 """
 
+PAWN = 0
+KNIGHT = 1
+BISHOP = 2
+ROOK = 3
+QUEEN = 4
+KING = 5
+
 
 class CoordinatesOutOfBoundsException(Exception):
     def __init__(self):
-        super().__init__("Coordinate(s) out of bounds in the called function")
+        super().__init__("Coordinate(s) out of bounds in the called function.")
+
+
+class IncorrectPieceTypeException(Exception):
+    def __init__(self):
+        super().__init__("Wrong chess piece type in the called function.")
 
 
 class ChessPiece:
-    def __init__(self, column: int, row: int, player: Player):
-        """
-        Chess piece class.
-
-        Variables:
-            row:
-        """
+    def __init__(
+        self,
+        type: int,
+        column: int,
+        row: int,
+        player: Player,
+        additional_argument1: bool = True,
+        additional_argument2: bool = False,
+    ):
         if row in list(range(8)) and column in list(range(8)):
             self._row = row
             self._column = column
         else:
             raise CoordinatesOutOfBoundsException
 
+        if type in list(range(6)):
+            self._type = type
+        else:
+            raise IncorrectPieceTypeException
+
         self._player = player
+
+        if type == PAWN:
+            self.first_move = additional_argument1
+            self.is_en_passantable = additional_argument2
+
+        if type in (ROOK, KING):
+            self.can_castle = additional_argument2
 
     def set_row(self, row: int):
         if row in list(range(8)):
@@ -44,6 +70,9 @@ class ChessPiece:
         else:
             raise CoordinatesOutOfBoundsException
 
+    def type(self) -> int:
+        return self._type
+
     def column(self) -> int:
         return self._column
 
@@ -54,60 +83,18 @@ class ChessPiece:
         return self._player
 
     def __str__(self) -> str:
-        pass
+        piece_acronyms = {
+            PAWN: "P",
+            KNIGHT: "N",
+            BISHOP: "B",
+            ROOK: "R",
+            QUEEN: "Q",
+            KING: "K",
+        }
+        return f"{piece_acronyms[self._type]}{self._player.char}"
 
     def __eq__(self, other: "ChessPiece") -> bool:
-        return type(self) == type(other)
-
-
-class Pawn(ChessPiece):
-    def __init__(
-        self,
-        column: int,
-        row: int,
-        player: Player,
-        first_move=True,
-        is_en_passantable=False,
-    ):
-        super().__init__(column, row, player)
-        self.first_move = first_move
-        self.is_en_passantable = is_en_passantable
-
-    def __str__(self) -> str:
-        return f"P{self._player.char}"
-
-
-class Knight(ChessPiece):
-    def __str__(self) -> str:
-        return f"N{self._player.char}"
-
-
-class Bishop(ChessPiece):
-    def __str__(self) -> str:
-        return f"B{self._player.char}"
-
-
-class Rook(ChessPiece):
-    def __init__(self, column: int, row: int, player: Player, can_castle=True):
-        super().__init__(row, column, player)
-        self.can_castle = can_castle
-
-    def __str__(self) -> str:
-        return f"R{self._player.char}"
-
-
-class Queen(ChessPiece):
-    def __str__(self) -> str:
-        return f"Q{self._player.char}"
-
-
-class King(ChessPiece):
-    def __init__(self, column: int, row: int, player: Player, can_castle=True):
-        super().__init__(row, column, player)
-        self.can_castle = can_castle
-
-    def __str__(self) -> str:
-        return f"K{self._player.char}"
+        return self._type == other._type
 
 
 class ChessMove(Move):
@@ -126,7 +113,15 @@ class ChessMove(Move):
         )
 
     def __repr__(self) -> str:
-        return f"{type(self.piece).__name__} move to {self.new_column} {self.new_row}"
+        piece_names = {
+            PAWN: "Pawn",
+            KNIGHT: "Knight",
+            BISHOP: "Bishop",
+            ROOK: "Rook",
+            QUEEN: "Queen",
+            KING: "King",
+        }
+        return f"{piece_names[self.piece.type()]} move to {self.new_column} {self.new_row}"
 
 
 class ChessState(State):
@@ -143,17 +138,17 @@ class ChessState(State):
         else:
             self._board = [
                 [
-                    Rook(0, 0, current_player),
-                    Knight(1, 0, current_player),
-                    Bishop(2, 0, current_player),
-                    Queen(3, 0, current_player),
-                    King(4, 0, current_player),
-                    Bishop(5, 0, current_player),
-                    Knight(6, 0, current_player),
-                    Rook(7, 0, current_player),
+                    ChessPiece(ROOK, 0, 0, current_player),
+                    ChessPiece(KNIGHT, 1, 0, current_player),
+                    ChessPiece(BISHOP, 2, 0, current_player),
+                    ChessPiece(QUEEN, 3, 0, current_player),
+                    ChessPiece(KING, 4, 0, current_player),
+                    ChessPiece(BISHOP, 5, 0, current_player),
+                    ChessPiece(KNIGHT, 6, 0, current_player),
+                    ChessPiece(ROOK, 7, 0, current_player),
                 ],
                 [
-                    Pawn(column_index, 1, current_player)
+                    ChessPiece(PAWN, column_index, 1, current_player)
                     for column_index in range(8)
                 ],
                 [None for column in range(8)],
@@ -161,18 +156,18 @@ class ChessState(State):
                 [None for column in range(8)],
                 [None for column in range(8)],
                 [
-                    Pawn(column_index, 6, other_player)
+                    ChessPiece(PAWN, column_index, 6, other_player)
                     for column_index in range(8)
                 ],
                 [
-                    Rook(0, 7, other_player),
-                    Knight(1, 7, other_player),
-                    Bishop(2, 7, other_player),
-                    Queen(3, 7, other_player),
-                    King(4, 7, other_player),
-                    Bishop(5, 7, other_player),
-                    Knight(6, 7, other_player),
-                    Rook(7, 7, other_player),
+                    ChessPiece(ROOK, 0, 7, other_player),
+                    ChessPiece(KNIGHT, 1, 7, other_player),
+                    ChessPiece(BISHOP, 2, 7, other_player),
+                    ChessPiece(QUEEN, 3, 7, other_player),
+                    ChessPiece(KING, 4, 7, other_player),
+                    ChessPiece(BISHOP, 5, 7, other_player),
+                    ChessPiece(KNIGHT, 6, 7, other_player),
+                    ChessPiece(ROOK, 7, 7, other_player),
                 ],
             ]
 
@@ -181,7 +176,7 @@ class ChessState(State):
 
         self._white = white or current_player
 
-    def _get_moves_pawn(self, pawn: Pawn) -> Iterable[ChessMove]:
+    def _get_moves_pawn(self, pawn: ChessPiece) -> Iterable[ChessMove]:
         result = []
         row_shift = 1 if pawn.player() == self._white else -1
         if pawn.player() == self._white:  # potentially dangerous if
@@ -222,7 +217,8 @@ class ChessState(State):
             left_square = self._board[pawn.row()][pawn.column() - 1]
             right_square = self._board[pawn.row()][pawn.column() + 1]
             if (
-                isinstance(left_square, Pawn)
+                left_square is not None
+                and left_square.type() == PAWN
                 and left_square.player() != pawn.player()
                 and left_square.is_en_passantable
                 and left_diagonal is None
@@ -231,7 +227,8 @@ class ChessState(State):
                     ChessMove(pawn, pawn.row() + row_shift, pawn.column() - 1)
                 )
             if (
-                isinstance(right_square, Pawn)
+                right_square is not None
+                and right_square.type() == PAWN
                 and right_square.player() != pawn.player()
                 and right_square.is_en_passantable
                 and right_diagonal is None
@@ -241,7 +238,7 @@ class ChessState(State):
                 )
         return result
 
-    def _get_moves_knight(self, knight: Knight) -> Iterable[ChessMove]:
+    def _get_moves_knight(self, knight: ChessPiece) -> Iterable[ChessMove]:
         result = []
         possible_shifts = list(product((-2, 2), (-1, 1))) + list(
             product((-1, 1), (-2, 2))
@@ -260,7 +257,7 @@ class ChessState(State):
                 result.append(ChessMove(knight, new_column, new_row))
         return result
 
-    def _get_moves_bishop(self, bishop: Bishop) -> Iterable[ChessMove]:
+    def _get_moves_bishop(self, bishop: ChessPiece) -> Iterable[ChessMove]:
         result = []
         for direction in product((-1, 1), (-1, 1)):
             dir_column, dir_row = direction
@@ -279,7 +276,7 @@ class ChessState(State):
                     break
         return result
 
-    def _get_moves_rook(self, rook: Rook) -> Iterable[ChessMove]:
+    def _get_moves_rook(self, rook: ChessPiece) -> Iterable[ChessMove]:
         result = []
         directions = ((1, 0), (0, 1), (-1, 0), (0, -1))
         for direction in directions:
@@ -299,14 +296,7 @@ class ChessState(State):
                     break
         return result
 
-    def _get_moves_queen(self, queen: Queen) -> Iterable[ChessMove]:
-        return self._get_moves_bishop(
-            Bishop(queen.column(), queen.row(), queen.player())
-        ) + self._get_moves_rook(
-            Rook(queen.column(), queen.row(), queen.player())
-        )
-
-    def _get_moves_king(self, king: King) -> Iterable[ChessMove]:
+    def _get_moves_king(self, king: ChessPiece) -> Iterable[ChessMove]:
         result = []
         possible_shifts = list(product((1, 0, -1), (1, 0, -1)))
         possible_shifts.remove((0, 0))
@@ -324,8 +314,18 @@ class ChessState(State):
                 result.append(ChessMove(king, new_column, new_row))
         return result
 
+    def _get_moves_queen(self, queen: ChessPiece) -> Iterable[ChessMove]:
+        return self._get_moves_bishop(queen) + self._get_moves_rook(queen)
+
     def _get_moves_piece(self, piece: ChessPiece) -> Iterable[ChessMove]:
-        pass
+        return {
+            PAWN: self._get_moves_pawn,
+            KNIGHT: self._get_moves_knight,
+            BISHOP: self._get_moves_bishop,
+            ROOK: self._get_moves_rook,
+            QUEEN: self._get_moves_queen,
+            KING: self._get_moves_king,
+        }[piece.type()](piece)
 
     def get_moves(self) -> Iterable[ChessMove]:
         pass
