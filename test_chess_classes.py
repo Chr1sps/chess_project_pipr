@@ -909,3 +909,32 @@ def test_get_moves_init_empty():
         ChessMove(ChessPiece(KNIGHT, 6, 0, player_1), 7, 2),
     ]
     assert chess_state.get_moves() == expected_moves
+
+
+def test_get_moves_init_empty_black_move():
+    player_1 = Player("1")
+    player_2 = Player("2")
+    chess_state = ChessState(player_2, player_1, player_1)
+    expected_moves = [
+        ChessMove(ChessPiece(PAWN, 0, 6, player_2), 0, 5),
+        ChessMove(ChessPiece(PAWN, 0, 6, player_2), 0, 4),
+        ChessMove(ChessPiece(PAWN, 1, 6, player_2), 0, 5),
+        ChessMove(ChessPiece(PAWN, 1, 6, player_2), 0, 4),
+        ChessMove(ChessPiece(PAWN, 2, 6, player_2), 0, 5),
+        ChessMove(ChessPiece(PAWN, 2, 6, player_2), 0, 4),
+        ChessMove(ChessPiece(PAWN, 3, 6, player_2), 0, 5),
+        ChessMove(ChessPiece(PAWN, 3, 6, player_2), 0, 4),
+        ChessMove(ChessPiece(PAWN, 4, 6, player_2), 0, 5),
+        ChessMove(ChessPiece(PAWN, 4, 6, player_2), 0, 4),
+        ChessMove(ChessPiece(PAWN, 5, 6, player_2), 0, 5),
+        ChessMove(ChessPiece(PAWN, 5, 6, player_2), 0, 4),
+        ChessMove(ChessPiece(PAWN, 6, 6, player_2), 0, 5),
+        ChessMove(ChessPiece(PAWN, 6, 6, player_2), 0, 4),
+        ChessMove(ChessPiece(PAWN, 7, 6, player_2), 0, 5),
+        ChessMove(ChessPiece(PAWN, 7, 6, player_2), 0, 4),
+        ChessMove(ChessPiece(KNIGHT, 1, 7, player_2), 0, 5),
+        ChessMove(ChessPiece(KNIGHT, 1, 7, player_2), 2, 5),
+        ChessMove(ChessPiece(KNIGHT, 6, 7, player_2), 5, 5),
+        ChessMove(ChessPiece(KNIGHT, 6, 7, player_2), 7, 5),
+    ]
+    assert chess_state.get_moves() == expected_moves

@@ -143,19 +143,20 @@ class ChessState(State):
         if board:
             self._board = board
         else:
+            black = other_player if current_player == white else current_player
             self._board = [
                 [
-                    ChessPiece(ROOK, 0, 0, current_player),
-                    ChessPiece(KNIGHT, 1, 0, current_player),
-                    ChessPiece(BISHOP, 2, 0, current_player),
-                    ChessPiece(QUEEN, 3, 0, current_player),
-                    ChessPiece(KING, 4, 0, current_player),
-                    ChessPiece(BISHOP, 5, 0, current_player),
-                    ChessPiece(KNIGHT, 6, 0, current_player),
-                    ChessPiece(ROOK, 7, 0, current_player),
+                    ChessPiece(ROOK, 0, 0, white),
+                    ChessPiece(KNIGHT, 1, 0, white),
+                    ChessPiece(BISHOP, 2, 0, white),
+                    ChessPiece(QUEEN, 3, 0, white),
+                    ChessPiece(KING, 4, 0, white),
+                    ChessPiece(BISHOP, 5, 0, white),
+                    ChessPiece(KNIGHT, 6, 0, white),
+                    ChessPiece(ROOK, 7, 0, white),
                 ],
                 [
-                    ChessPiece(PAWN, column_index, 1, current_player)
+                    ChessPiece(PAWN, column_index, 1, white)
                     for column_index in range(8)
                 ],
                 [None for column in range(8)],
@@ -163,18 +164,18 @@ class ChessState(State):
                 [None for column in range(8)],
                 [None for column in range(8)],
                 [
-                    ChessPiece(PAWN, column_index, 6, other_player)
+                    ChessPiece(PAWN, column_index, 6, black)
                     for column_index in range(8)
                 ],
                 [
-                    ChessPiece(ROOK, 0, 7, other_player),
-                    ChessPiece(KNIGHT, 1, 7, other_player),
-                    ChessPiece(BISHOP, 2, 7, other_player),
-                    ChessPiece(QUEEN, 3, 7, other_player),
-                    ChessPiece(KING, 4, 7, other_player),
-                    ChessPiece(BISHOP, 5, 7, other_player),
-                    ChessPiece(KNIGHT, 6, 7, other_player),
-                    ChessPiece(ROOK, 7, 7, other_player),
+                    ChessPiece(ROOK, 0, 7, black),
+                    ChessPiece(KNIGHT, 1, 7, black),
+                    ChessPiece(BISHOP, 2, 7, black),
+                    ChessPiece(QUEEN, 3, 7, black),
+                    ChessPiece(KING, 4, 7, black),
+                    ChessPiece(BISHOP, 5, 7, black),
+                    ChessPiece(KNIGHT, 6, 7, black),
+                    ChessPiece(ROOK, 7, 7, black),
                 ],
             ]
 
