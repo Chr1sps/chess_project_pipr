@@ -6,6 +6,7 @@ from chess_classes import (
     QUEEN,
     KING,
     CoordinatesOutOfBoundsException,
+    IncorrectPieceTypeException,
     ChessPiece,
     ChessMove,
     ChessState,
@@ -27,6 +28,12 @@ def test_chess_piece_init_out_of_bounds():
     with raises(CoordinatesOutOfBoundsException):
         player_1 = Player("1")
         chess_piece = ChessPiece(PAWN, -1, 1, player_1)
+
+
+def test_chess_piece_incorrect_type():
+    with raises(IncorrectPieceTypeException):
+        player_1 = Player("1")
+        chess_piece = ChessPiece(-1, 1, 1, player_1)
 
 
 def test_pawn_moves_no_edge_cases():
