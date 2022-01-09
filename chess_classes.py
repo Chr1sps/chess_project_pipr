@@ -143,6 +143,7 @@ class ChessState(State):
         if board:
             self._board = board
         else:
+            white = white or current_player
             black = other_player if current_player == white else current_player
             self._board = [
                 [

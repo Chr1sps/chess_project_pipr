@@ -820,9 +820,14 @@ def test_king_moves_can_take():
                         \n"
     )
     expected_moves = [
+        ChessMove(king, 2, 3),
         ChessMove(king, 4, 3),
         ChessMove(king, 3, 4),
+        ChessMove(king, 3, 2),
+        ChessMove(king, 2, 2),
         ChessMove(king, 4, 4),
+        ChessMove(king, 2, 4),
+        ChessMove(king, 4, 2),
     ]
     assert chess_state._get_moves_king(king) == expected_moves
 
