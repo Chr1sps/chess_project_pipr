@@ -5,10 +5,6 @@ from two_player_games.player import Player
 from two_player_games.move import Move
 from itertools import product
 
-"""
-This file will likely be broken down into several
-subfiles corresponding to each class.
-"""
 
 PAWN = 0
 KNIGHT = 1
@@ -35,16 +31,16 @@ class ChessPiece:
         column: int,
         row: int,
         player: Player,
-        additional_argument1: bool = True,
-        additional_argument2: bool = False,
+        first_move_or_can_castle: bool = True,
+        is_en_passantable: bool = False,
     ):
-        if row in list(range(8)) and column in list(range(8)):
+        if row in range(8) and column in range(8):
             self._row = row
             self._column = column
         else:
             raise CoordinatesOutOfBoundsException
 
-        if type in list(range(6)):
+        if type in range(6):
             self._type = type
         else:
             raise IncorrectPieceTypeException
@@ -52,11 +48,11 @@ class ChessPiece:
         self._player = player
 
         if type == PAWN:
-            self.first_move = additional_argument1
-            self.is_en_passantable = additional_argument2
+            self.first_move = first_move_or_can_castle
+            self.is_en_passantable = is_en_passantable
 
         if type in (ROOK, KING):
-            self.can_castle = additional_argument2
+            self.can_castle = first_move_or_can_castle
 
     def set_row(self, row: int):
         if row in list(range(8)):
@@ -95,6 +91,17 @@ class ChessPiece:
 
     def __eq__(self, other: "ChessPiece") -> bool:
         return self._type == other._type
+
+    def __repr__(self) -> str:
+        piece_names = {
+            PAWN: "Pawn",
+            KNIGHT: "Knight",
+            BISHOP: "Bishop",
+            ROOK: "Rook",
+            QUEEN: "Queen",
+            KING: "King",
+        }
+        return f"{piece_names[self._type]} at {self._column} {self._row}"
 
 
 class ChessMove(Move):
@@ -179,53 +186,31 @@ class ChessState(State):
     def _get_moves_pawn(self, pawn: ChessPiece) -> Iterable[ChessMove]:
         result = []
         row_shift = 1 if pawn.player() == self._white else -1
-        if pawn.player() == self._white:  # potentially dangerous if
-            if self._board[pawn.row() + row_shift][pawn.column()] is None:
-                result.append(
-                    ChessMove(pawn, pawn.row() + row_shift, pawn.column())
-                )
-                if (
-                    pawn.first_move
-                    and self._board[pawn.row() + 2 * row_shift][pawn.column()]
-                    is None
-                ):
-                    result.append(
-                        ChessMove(
-                            pawn, pawn.row() + 2 * row_shift, pawn.column()
-                        )
-                    )
-            left_diagonal = self._board[pawn.row() + row_shift][
-                pawn.column() - 1
-            ]
-            right_diagonal = self._board[pawn.row() + row_shift][
-                pawn.column() + 1
-            ]
-            if (
-                left_diagonal is not None
-                and left_diagonal.player() != pawn.player()
-            ):
-                result.append(
-                    ChessMove(pawn, pawn.row() + row_shift, pawn.column() - 1)
-                )
+        right_column = pawn.column() + 1
+        left_column = pawn.column() - 1
+
+        if self._board[pawn.row() + row_shift][pawn.column()] is None:
+            result.append(
+                ChessMove(pawn, pawn.row() + row_shift, pawn.column())
+            )
+        if (
+            pawn.first_move
+            and self._board[pawn.row() + 2 * row_shift][pawn.column()] is None
+        ):
+            result.append(
+                ChessMove(pawn, pawn.row() + 2 * row_shift, pawn.column())
+            )
+        if right_column in range(8):
+            right_diagonal = self._board[pawn.row() + row_shift][right_column]
             if (
                 right_diagonal is not None
                 and right_diagonal.player() != pawn.player()
             ):
                 result.append(
-                    ChessMove(pawn, pawn.row() + row_shift, pawn.column() + 1)
+                    ChessMove(pawn, pawn.row() + row_shift, right_column)
                 )
-            left_square = self._board[pawn.row()][pawn.column() - 1]
-            right_square = self._board[pawn.row()][pawn.column() + 1]
-            if (
-                left_square is not None
-                and left_square.type() == PAWN
-                and left_square.player() != pawn.player()
-                and left_square.is_en_passantable
-                and left_diagonal is None
-            ):
-                result.append(
-                    ChessMove(pawn, pawn.row() + row_shift, pawn.column() - 1)
-                )
+
+            right_square = self._board[pawn.row()][right_column]
             if (
                 right_square is not None
                 and right_square.type() == PAWN
@@ -234,8 +219,31 @@ class ChessState(State):
                 and right_diagonal is None
             ):
                 result.append(
-                    ChessMove(pawn, pawn.row() + row_shift, pawn.column() + 1)
+                    ChessMove(pawn, pawn.row() + row_shift, right_column)
                 )
+
+        if left_column in range(8):
+            left_diagonal = self._board[pawn.row() + row_shift][left_column]
+            if (
+                left_diagonal is not None
+                and left_diagonal.player() != pawn.player()
+            ):
+                result.append(
+                    ChessMove(pawn, pawn.row() + row_shift, left_column)
+                )
+
+            left_square = self._board[pawn.row()][left_column]
+            if (
+                left_square is not None
+                and left_square.type() == PAWN
+                and left_square.player() != pawn.player()
+                and left_square.is_en_passantable
+                and left_diagonal is None
+            ):
+                result.append(
+                    ChessMove(pawn, pawn.row() + row_shift, left_column)
+                )
+
         return result
 
     def _get_moves_knight(self, knight: ChessPiece) -> Iterable[ChessMove]:
@@ -265,8 +273,8 @@ class ChessState(State):
                 new_column = bishop.column() + distance * dir_column
                 new_row = bishop.row() + distance * dir_row
                 if new_column not in range(8) or new_row not in range(8):
-                    continue
-                possible_square = self._board[new_column][new_row]
+                    break
+                possible_square = self._board[new_row][new_column]
                 if not (
                     possible_square is not None
                     and possible_square.player() == bishop.player()
@@ -286,7 +294,7 @@ class ChessState(State):
                 new_row = rook.row() + distance * dir_row
                 if new_column not in range(8) or new_row not in range(8):
                     continue
-                possible_square = self._board[new_column][new_row]
+                possible_square = self._board[new_row][new_column]
                 if not (
                     possible_square is not None
                     and possible_square.player() == rook.player()
@@ -306,7 +314,7 @@ class ChessState(State):
             new_row += king.row()
             if new_column not in range(8) or new_row not in range(8):
                 continue
-            possible_square = self._board[new_column][new_row]
+            possible_square = self._board[new_row][new_column]
             if not (
                 possible_square is not None
                 and possible_square.player() == king.player()
@@ -318,6 +326,8 @@ class ChessState(State):
         return self._get_moves_bishop(queen) + self._get_moves_rook(queen)
 
     def _get_moves_piece(self, piece: ChessPiece) -> Iterable[ChessMove]:
+        if piece is None:
+            return None
         return {
             PAWN: self._get_moves_pawn,
             KNIGHT: self._get_moves_knight,
@@ -328,7 +338,17 @@ class ChessState(State):
         }[piece.type()](piece)
 
     def get_moves(self) -> Iterable[ChessMove]:
-        pass
+        result = []
+        for row in self._board:
+            for piece in row:
+                piece_moves = []
+                if (
+                    piece is not None
+                    and piece.player() == self._current_player
+                ):
+                    piece_moves = self._get_moves_piece(piece)
+                result += piece_moves
+        return result
 
     def get_current_player(self) -> Player:
         return self._current_player

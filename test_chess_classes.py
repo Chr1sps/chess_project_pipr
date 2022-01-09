@@ -658,6 +658,103 @@ def test_queen_moves_no_edge_cases():
     assert chess_state._get_moves_queen(queen) == expected_moves
 
 
+def test_queen_moves_can_take():
+    player_1 = Player("1")
+    player_2 = Player("2")
+    queen = ChessPiece(QUEEN, 3, 3, player_1, False)
+    pawn_1 = ChessPiece(PAWN, 2, 2, player_2, False)
+    pawn_2 = ChessPiece(PAWN, 3, 2, player_2, False)
+    pawn_3 = ChessPiece(PAWN, 4, 2, player_2, False)
+    pawn_4 = ChessPiece(PAWN, 2, 3, player_2, False)
+    pawn_5 = ChessPiece(PAWN, 2, 4, player_2, False)
+    board = (
+        [[None for _ in range(8)] for _ in range(2)]
+        + [[None, None, pawn_1, pawn_2, pawn_3, None, None, None]]
+        + [[None, None, pawn_4, queen, None, None, None, None]]
+        + [[pawn_5 if column == 2 else None for column in range(8)]]
+        + [[None for _ in range(8)] for _ in range(3)]
+    )
+    chess_state = ChessState(player_1, player_2, player_1, board)
+    assert (
+        str(chess_state)
+        == "\
+                        \n\
+                        \n\
+                        \n\
+      P2                \n\
+      P2 Q1             \n\
+      P2 P2 P2          \n\
+                        \n\
+                        \n"
+    )
+    expected_moves = [
+        ChessMove(queen, 2, 3),
+        ChessMove(queen, 4, 3),
+        ChessMove(queen, 3, 4),
+        ChessMove(queen, 3, 2),
+        ChessMove(queen, 2, 2),
+        ChessMove(queen, 4, 4),
+        ChessMove(queen, 2, 4),
+        ChessMove(queen, 4, 2),
+        ChessMove(queen, 3, 5),
+        ChessMove(queen, 3, 6),
+        ChessMove(queen, 3, 7),
+        ChessMove(queen, 5, 5),
+        ChessMove(queen, 6, 6),
+        ChessMove(queen, 7, 7),
+        ChessMove(queen, 3, 5),
+        ChessMove(queen, 3, 6),
+        ChessMove(queen, 3, 7),
+    ]
+    assert chess_state._get_moves_queen(queen) == expected_moves
+
+
+def test_queen_moves_blocked():
+    player_1 = Player("1")
+    player_2 = Player("2")
+    queen = ChessPiece(QUEEN, 3, 3, player_1, False)
+    pawn_1 = ChessPiece(PAWN, 2, 2, player_1, False)
+    pawn_2 = ChessPiece(PAWN, 3, 2, player_1, False)
+    pawn_3 = ChessPiece(PAWN, 4, 2, player_1, False)
+    pawn_4 = ChessPiece(PAWN, 2, 3, player_1, False)
+    pawn_5 = ChessPiece(PAWN, 2, 4, player_1, False)
+    board = (
+        [[None for _ in range(8)] for _ in range(2)]
+        + [[None, None, pawn_1, pawn_2, pawn_3, None, None, None]]
+        + [[None, None, pawn_4, queen, None, None, None, None]]
+        + [[pawn_5 if column == 2 else None for column in range(8)]]
+        + [[None for _ in range(8)] for _ in range(3)]
+    )
+    chess_state = ChessState(player_1, player_2, player_1, board)
+    assert (
+        str(chess_state)
+        == "\
+                        \n\
+                        \n\
+                        \n\
+      P1                \n\
+      P1 Q1             \n\
+      P1 P1 P1          \n\
+                        \n\
+                        \n"
+    )
+    expected_moves = [
+        ChessMove(queen, 4, 3),
+        ChessMove(queen, 3, 4),
+        ChessMove(queen, 4, 4),
+        ChessMove(queen, 3, 5),
+        ChessMove(queen, 3, 6),
+        ChessMove(queen, 3, 7),
+        ChessMove(queen, 5, 5),
+        ChessMove(queen, 6, 6),
+        ChessMove(queen, 7, 7),
+        ChessMove(queen, 3, 5),
+        ChessMove(queen, 3, 6),
+        ChessMove(queen, 3, 7),
+    ]
+    assert chess_state._get_moves_queen(queen) == expected_moves
+
+
 def test_king_moves_no_edge_cases():
     player_1 = Player("1")
     player_2 = Player("2")
@@ -693,6 +790,80 @@ def test_king_moves_no_edge_cases():
     assert chess_state._get_moves_king(king) == expected_moves
 
 
+def test_king_moves_can_take():
+    player_1 = Player("1")
+    player_2 = Player("2")
+    king = ChessPiece(KING, 3, 3, player_1, False)
+    pawn_1 = ChessPiece(PAWN, 2, 2, player_2, False)
+    pawn_2 = ChessPiece(PAWN, 3, 2, player_2, False)
+    pawn_3 = ChessPiece(PAWN, 4, 2, player_2, False)
+    pawn_4 = ChessPiece(PAWN, 2, 3, player_2, False)
+    pawn_5 = ChessPiece(PAWN, 2, 4, player_2, False)
+    board = (
+        [[None for _ in range(8)] for _ in range(2)]
+        + [[None, None, pawn_1, pawn_2, pawn_3, None, None, None]]
+        + [[None, None, pawn_4, king, None, None, None, None]]
+        + [[pawn_5 if column == 2 else None for column in range(8)]]
+        + [[None for _ in range(8)] for _ in range(3)]
+    )
+    chess_state = ChessState(player_1, player_2, player_1, board)
+    assert (
+        str(chess_state)
+        == "\
+                        \n\
+                        \n\
+                        \n\
+      P2                \n\
+      P2 K1             \n\
+      P2 P2 P2          \n\
+                        \n\
+                        \n"
+    )
+    expected_moves = [
+        ChessMove(king, 4, 3),
+        ChessMove(king, 3, 4),
+        ChessMove(king, 4, 4),
+    ]
+    assert chess_state._get_moves_king(king) == expected_moves
+
+
+def test_king_moves_blocked():
+    player_1 = Player("1")
+    player_2 = Player("2")
+    king = ChessPiece(KING, 3, 3, player_1, False)
+    pawn_1 = ChessPiece(PAWN, 2, 2, player_1, False)
+    pawn_2 = ChessPiece(PAWN, 3, 2, player_1, False)
+    pawn_3 = ChessPiece(PAWN, 4, 2, player_1, False)
+    pawn_4 = ChessPiece(PAWN, 2, 3, player_1, False)
+    pawn_5 = ChessPiece(PAWN, 2, 4, player_1, False)
+    board = (
+        [[None for _ in range(8)] for _ in range(2)]
+        + [[None, None, pawn_1, pawn_2, pawn_3, None, None, None]]
+        + [[None, None, pawn_4, king, None, None, None, None]]
+        + [[pawn_5 if column == 2 else None for column in range(8)]]
+        + [[None for _ in range(8)] for _ in range(3)]
+    )
+    chess_state = ChessState(player_1, player_2, player_1, board)
+    assert (
+        str(chess_state)
+        == "\
+                        \n\
+                        \n\
+                        \n\
+      P1                \n\
+      P1 K1             \n\
+      P1 P1 P1          \n\
+                        \n\
+                        \n"
+    )
+    expected_moves = [
+        ChessMove(king, 4, 3),
+        ChessMove(king, 3, 4),
+        ChessMove(king, 4, 4),
+    ]
+    assert chess_state._get_moves_king(king) == expected_moves
+
+
 def test_chess_state_init_empty():
     player_1 = Player("1")
     player_2 = Player("2")
@@ -709,3 +880,32 @@ P2 P2 P2 P2 P2 P2 P2 P2 \n\
 P1 P1 P1 P1 P1 P1 P1 P1 \n\
 R1 N1 B1 Q1 K1 B1 N1 R1 \n"
     )
+
+
+def test_get_moves_init_empty():
+    player_1 = Player("1")
+    player_2 = Player("2")
+    chess_state = ChessState(player_1, player_2)
+    expected_moves = [
+        ChessMove(ChessPiece(PAWN, 0, 1, player_1), 0, 2),
+        ChessMove(ChessPiece(PAWN, 0, 1, player_1), 0, 3),
+        ChessMove(ChessPiece(PAWN, 1, 1, player_1), 0, 2),
+        ChessMove(ChessPiece(PAWN, 1, 1, player_1), 0, 3),
+        ChessMove(ChessPiece(PAWN, 2, 1, player_1), 0, 2),
+        ChessMove(ChessPiece(PAWN, 2, 1, player_1), 0, 3),
+        ChessMove(ChessPiece(PAWN, 3, 1, player_1), 0, 2),
+        ChessMove(ChessPiece(PAWN, 3, 1, player_1), 0, 3),
+        ChessMove(ChessPiece(PAWN, 4, 1, player_1), 0, 2),
+        ChessMove(ChessPiece(PAWN, 4, 1, player_1), 0, 3),
+        ChessMove(ChessPiece(PAWN, 5, 1, player_1), 0, 2),
+        ChessMove(ChessPiece(PAWN, 5, 1, player_1), 0, 3),
+        ChessMove(ChessPiece(PAWN, 6, 1, player_1), 0, 2),
+        ChessMove(ChessPiece(PAWN, 6, 1, player_1), 0, 3),
+        ChessMove(ChessPiece(PAWN, 7, 1, player_1), 0, 2),
+        ChessMove(ChessPiece(PAWN, 7, 1, player_1), 0, 3),
+        ChessMove(ChessPiece(KNIGHT, 1, 0, player_1), 0, 2),
+        ChessMove(ChessPiece(KNIGHT, 1, 0, player_1), 2, 2),
+        ChessMove(ChessPiece(KNIGHT, 6, 0, player_1), 5, 2),
+        ChessMove(ChessPiece(KNIGHT, 6, 0, player_1), 7, 2),
+    ]
+    assert chess_state.get_moves() == expected_moves
