@@ -107,13 +107,11 @@ class ChessPiece:
 class ChessMove(Move):
     def __init__(
         self,
-        type: int,
         start_column: int,
         start_row: int,
         end_column: int,
         end_row: int,
     ):
-        self.type = type
         self.start_column = start_column
         self.start_row = start_row
         self.end_column = end_column
@@ -123,23 +121,14 @@ class ChessMove(Move):
         if not isinstance(other, ChessMove):
             return False
         return (
-            self.type == other.type
-            and self.start_column == other.start_column
+            self.start_column == other.start_column
             and self.start_row == other.start_row
             and self.end_column == other.end_column
             and self.end_row == other.end_row
         )
 
     def __repr__(self) -> str:
-        piece_names = {
-            PAWN: "Pawn",
-            KNIGHT: "Knight",
-            BISHOP: "Bishop",
-            ROOK: "Rook",
-            QUEEN: "Queen",
-            KING: "King",
-        }
-        return f"{piece_names[self.type]} at {self.start_column} {self.start_row} move to {self.end_column} {self.end_row}"
+        return f"{self.start_column} {self.start_row} move to {self.end_column} {self.end_row}"
 
 
 class ChessState(State):
@@ -205,7 +194,6 @@ class ChessState(State):
         if self._board[pawn.row() + row_shift][pawn.column()] is None:
             result.append(
                 ChessMove(
-                    PAWN,
                     pawn.column(),
                     pawn.row(),
                     pawn.column(),
@@ -218,7 +206,6 @@ class ChessState(State):
         ):
             result.append(
                 ChessMove(
-                    PAWN,
                     pawn.column(),
                     pawn.row(),
                     pawn.column(),
@@ -233,7 +220,6 @@ class ChessState(State):
             ):
                 result.append(
                     ChessMove(
-                        PAWN,
                         pawn.column(),
                         pawn.row(),
                         right_column,
@@ -251,7 +237,6 @@ class ChessState(State):
             ):
                 result.append(
                     ChessMove(
-                        PAWN,
                         pawn.column(),
                         pawn.row(),
                         right_column,
@@ -267,7 +252,6 @@ class ChessState(State):
             ):
                 result.append(
                     ChessMove(
-                        PAWN,
                         pawn.column(),
                         pawn.row(),
                         left_column,
@@ -285,7 +269,6 @@ class ChessState(State):
             ):
                 result.append(
                     ChessMove(
-                        PAWN,
                         pawn.column(),
                         pawn.row(),
                         left_column,
@@ -313,7 +296,6 @@ class ChessState(State):
             ):
                 result.append(
                     ChessMove(
-                        KNIGHT,
                         knight.column(),
                         knight.row(),
                         new_column,
@@ -338,7 +320,6 @@ class ChessState(State):
                 ):
                     result.append(
                         ChessMove(
-                            bishop.type(),
                             bishop.column(),
                             bishop.row(),
                             new_column,
@@ -366,7 +347,6 @@ class ChessState(State):
                 ):
                     result.append(
                         ChessMove(
-                            rook.type(),
                             rook.column(),
                             rook.row(),
                             new_column,
@@ -398,9 +378,7 @@ class ChessState(State):
                 and possible_square.player() == king.player()
             ):
                 result.append(
-                    ChessMove(
-                        KING, king.column(), king.row(), new_column, new_row
-                    )
+                    ChessMove(king.column(), king.row(), new_column, new_row)
                 )
 
         if king.column() == 4 and king.can_castle:
@@ -417,7 +395,7 @@ class ChessState(State):
                 )
             ):
                 result.append(
-                    ChessMove(KING, king.column(), king.row(), 2, king.row())
+                    ChessMove(king.column(), king.row(), 2, king.row())
                 )
 
             right_corner = self._board[king.row()][7]
@@ -432,7 +410,7 @@ class ChessState(State):
                 )
             ):
                 result.append(
-                    ChessMove(KING, king.column(), king.row(), 6, king.row())
+                    ChessMove(king.column(), king.row(), 6, king.row())
                 )
 
         return result
