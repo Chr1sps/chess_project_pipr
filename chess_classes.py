@@ -307,21 +307,55 @@ class ChessState(State):
         return result
 
     def _get_moves_king(self, king: ChessPiece) -> Iterable[ChessMove]:
+
         result = []
         possible_shifts = list(product((1, 0, -1), (1, 0, -1)))
         possible_shifts.remove((0, 0))
+
         for shift in possible_shifts:
+
             new_column, new_row = shift
             new_column += king.column()
             new_row += king.row()
+
             if new_column not in range(8) or new_row not in range(8):
                 continue
+
             possible_square = self._board[new_row][new_column]
             if not (
                 possible_square is not None
                 and possible_square.player() == king.player()
             ):
                 result.append(ChessMove(king, new_column, new_row))
+
+        if king.column() == 4 and king.can_castle:
+
+            left_corner = self._board[king.row()][0]
+            if (
+                left_corner
+                and left_corner.type() == ROOK
+                and left_corner.player() == king.player()
+                and left_corner.can_castle
+                and all(
+                    self._board[king.row()][column] is None
+                    for column in range(1, 4)
+                )
+            ):
+                result.append(ChessMove(king, king.column(), 2))
+
+            right_corner = self._board[king.row()][7]
+            if (
+                right_corner
+                and right_corner.type() == ROOK
+                and right_corner.player() == king.player()
+                and right_corner.can_castle
+                and all(
+                    self._board[king.row()][column] is None
+                    for column in range(5, 7)
+                )
+            ):
+                result.append(ChessMove(king, king.column(), 6))
+
         return result
 
     def _get_moves_queen(self, queen: ChessPiece) -> Iterable[ChessMove]:
@@ -330,6 +364,7 @@ class ChessState(State):
     def _get_moves_piece(self, piece: ChessPiece) -> Iterable[ChessMove]:
         if piece is None:
             return None
+
         return {
             PAWN: self._get_moves_pawn,
             KNIGHT: self._get_moves_knight,
@@ -340,7 +375,9 @@ class ChessState(State):
         }[piece.type()](piece)
 
     def get_moves(self) -> Iterable[ChessMove]:
+
         result = []
+
         for row in self._board:
             for piece in row:
                 piece_moves = []
@@ -365,6 +402,7 @@ class ChessState(State):
         pass
 
     def __str__(self) -> str:
+
         return "".join(
             [
                 ("".join([f"{piece} " if piece else "   " for piece in row]))

@@ -869,6 +869,104 @@ def test_king_moves_blocked():
     assert chess_state._get_moves_king(king) == expected_moves
 
 
+def test_king_moves_can_castle():
+    player_1 = Player("1")
+    player_2 = Player("2")
+    king = ChessPiece(KING, 4, 0, player_1)
+    rook_1 = ChessPiece(ROOK, 0, 0, player_1)
+    rook_2 = ChessPiece(ROOK, 7, 0, player_1)
+    board = [[rook_1, None, None, None, king, None, None, rook_2]] + [
+        [None for _ in range(8)] for _ in range(7)
+    ]
+    chess_state = ChessState(player_1, player_2, player_1, board)
+    assert (
+        str(chess_state)
+        == "\
+                        \n\
+                        \n\
+                        \n\
+                        \n\
+                        \n\
+                        \n\
+                        \n\
+R1          K1       R1 \n"
+    )
+    expected_moves = [
+        ChessMove(king, 3, 0),
+        ChessMove(king, 3, 1),
+        ChessMove(king, 4, 1),
+        ChessMove(king, 5, 1),
+        ChessMove(king, 5, 0),
+        ChessMove(king, 2, 0),
+        ChessMove(king, 6, 0),
+    ]
+    assert chess_state._get_moves_king(king) == expected_moves
+
+
+def test_king_moves_cant_castle_king_moved():
+    player_1 = Player("1")
+    player_2 = Player("2")
+    king = ChessPiece(KING, 4, 0, player_1, False)
+    rook_1 = ChessPiece(ROOK, 0, 0, player_1)
+    rook_2 = ChessPiece(ROOK, 7, 0, player_1)
+    board = [[rook_1, None, None, None, king, None, None, rook_2]] + [
+        [None for _ in range(8)] for _ in range(7)
+    ]
+    chess_state = ChessState(player_1, player_2, player_1, board)
+    assert (
+        str(chess_state)
+        == "\
+                        \n\
+                        \n\
+                        \n\
+                        \n\
+                        \n\
+                        \n\
+                        \n\
+R1          K1       R1 \n"
+    )
+    expected_moves = [
+        ChessMove(king, 3, 0),
+        ChessMove(king, 3, 1),
+        ChessMove(king, 4, 1),
+        ChessMove(king, 5, 1),
+        ChessMove(king, 5, 0),
+    ]
+    assert chess_state._get_moves_king(king) == expected_moves
+
+
+def test_king_moves_cant_castle_rooks_moved():
+    player_1 = Player("1")
+    player_2 = Player("2")
+    king = ChessPiece(KING, 4, 0, player_1)
+    rook_1 = ChessPiece(ROOK, 0, 0, player_1, False)
+    rook_2 = ChessPiece(ROOK, 7, 0, player_1, False)
+    board = [[rook_1, None, None, None, king, None, None, rook_2]] + [
+        [None for _ in range(8)] for _ in range(7)
+    ]
+    chess_state = ChessState(player_1, player_2, player_1, board)
+    assert (
+        str(chess_state)
+        == "\
+                        \n\
+                        \n\
+                        \n\
+                        \n\
+                        \n\
+                        \n\
+                        \n\
+R1          K1       R1 \n"
+    )
+    expected_moves = [
+        ChessMove(king, 3, 0),
+        ChessMove(king, 3, 1),
+        ChessMove(king, 4, 1),
+        ChessMove(king, 5, 1),
+        ChessMove(king, 5, 0),
+    ]
+    assert chess_state._get_moves_king(king) == expected_moves
+
+
 def test_chess_state_init_empty():
     player_1 = Player("1")
     player_2 = Player("2")
