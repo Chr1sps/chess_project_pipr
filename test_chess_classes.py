@@ -11,8 +11,25 @@ from chess_classes import (
     ChessMove,
     ChessState,
 )
+from typing import Iterable
 from two_player_games.player import Player
 from pytest import raises
+
+
+def compare_move_tables(
+    table_1: Iterable[ChessMove], table_2: Iterable[ChessMove]
+) -> bool:
+    table_1_copy = list(table_1)
+    table_2_copy = list(table_2)
+    for move_1 in table_1:
+        for move_2 in table_2:
+            if move_1 == move_2:
+                table_1_copy.remove(move_1)
+                table_2_copy.remove(move_2)
+                break
+    if table_1_copy or table_2_copy:
+        return False
+    return True
 
 
 def test_chess_piece_init_in_bounds():
@@ -58,7 +75,7 @@ def test_pawn_moves_no_edge_cases():
                         \n\
                         \n"
     )
-    expected_moves = [ChessMove(pawn, 3, 4)]
+    expected_moves = [ChessMove(PAWN, 3, 3, 3, 4)]
     assert chess_state._get_moves_pawn(pawn) == expected_moves
 
 
@@ -84,14 +101,14 @@ P1                      \n\
                         \n\
                         \n"
     )
-    expected_moves = [ChessMove(pawn, 0, 4)]
+    expected_moves = [ChessMove(PAWN, 0, 3, 0, 4)]
     assert chess_state._get_moves_pawn(pawn) == expected_moves
 
 
 def test_pawn_moves_first_move():
     player_1 = Player("1")
     player_2 = Player("2")
-    pawn = ChessPiece(PAWN, 3, 3, player_1)
+    pawn = ChessPiece(PAWN, 3, 1, player_1)
     board = (
         [[None for _ in range(8)]]
         + [[pawn if column == 3 else None for column in range(8)]]
@@ -110,7 +127,10 @@ def test_pawn_moves_first_move():
          P1             \n\
                         \n"
     )
-    expected_moves = [ChessMove(pawn, 3, 2), ChessMove(pawn, 3, 3)]
+    expected_moves = [
+        ChessMove(PAWN, 3, 1, 3, 2),
+        ChessMove(PAWN, 3, 1, 3, 3),
+    ]
     assert chess_state._get_moves_pawn(pawn) == expected_moves
 
 
@@ -137,7 +157,7 @@ def test_pawn_moves_en_passant():
                         \n\
                         \n"
     )
-    expected_moves = [ChessMove(pawn_1, 3, 5), ChessMove(pawn_1, 4, 5)]
+    expected_moves = [ChessMove(PAWN, 3, 4, 3, 5), ChessMove(PAWN, 3, 4, 4, 5)]
     assert chess_state._get_moves_pawn(pawn_1) == expected_moves
 
 
@@ -165,7 +185,7 @@ def test_pawn_moves_can_take():
                         \n\
                         \n"
     )
-    expected_moves = [ChessMove(pawn_1, 3, 5), ChessMove(pawn_1, 4, 5)]
+    expected_moves = [ChessMove(PAWN, 3, 4, 3, 5), ChessMove(PAWN, 3, 4, 4, 5)]
     assert chess_state._get_moves_pawn(pawn_1) == expected_moves
 
 
@@ -221,7 +241,7 @@ def test_pawn_moves_blocked_en_passant():
                         \n\
                         \n"
     )
-    expected_moves = [ChessMove(pawn_1, 3, 4)]
+    expected_moves = [ChessMove(PAWN, 3, 3, 3, 4)]
     assert chess_state._get_moves_pawn(pawn_1) == expected_moves
 
 
@@ -248,16 +268,18 @@ def test_knight_moves_no_edge_cases():
                         \n"
     )
     expected_moves = [
-        ChessMove(knight, 2, 2),
-        ChessMove(knight, 1, 3),
-        ChessMove(knight, 1, 5),
-        ChessMove(knight, 2, 6),
-        ChessMove(knight, 4, 6),
-        ChessMove(knight, 5, 5),
-        ChessMove(knight, 3, 5),
-        ChessMove(knight, 4, 2),
+        ChessMove(KNIGHT, 3, 4, 2, 2),
+        ChessMove(KNIGHT, 3, 4, 1, 3),
+        ChessMove(KNIGHT, 3, 4, 1, 5),
+        ChessMove(KNIGHT, 3, 4, 2, 6),
+        ChessMove(KNIGHT, 3, 4, 4, 6),
+        ChessMove(KNIGHT, 3, 4, 5, 5),
+        ChessMove(KNIGHT, 3, 4, 5, 3),
+        ChessMove(KNIGHT, 3, 4, 4, 2),
     ]
-    assert chess_state._get_moves_knight(knight) == expected_moves
+    assert compare_move_tables(
+        chess_state._get_moves_knight(knight), expected_moves
+    )
 
 
 def test_knight_moves_corner():
@@ -280,7 +302,10 @@ def test_knight_moves_corner():
                         \n\
 N1                      \n"
     )
-    expected_moves = [ChessMove(knight, 2, 1), ChessMove(knight, 1, 2)]
+    expected_moves = [
+        ChessMove(KNIGHT, 0, 0, 2, 1),
+        ChessMove(KNIGHT, 0, 0, 1, 2),
+    ]
     assert chess_state._get_moves_knight(knight) == expected_moves
 
 
@@ -310,16 +335,18 @@ def test_knight_moves_can_take():
                         \n"
     )
     expected_moves = [
-        ChessMove(knight_1, 2, 2),
-        ChessMove(knight_1, 1, 3),
-        ChessMove(knight_1, 1, 5),
-        ChessMove(knight_1, 2, 6),
-        ChessMove(knight_1, 4, 6),
-        ChessMove(knight_1, 5, 5),
-        ChessMove(knight_1, 3, 5),
-        ChessMove(knight_1, 4, 2),
+        ChessMove(KNIGHT, 3, 4, 2, 2),
+        ChessMove(KNIGHT, 3, 4, 1, 3),
+        ChessMove(KNIGHT, 3, 4, 1, 5),
+        ChessMove(KNIGHT, 3, 4, 2, 6),
+        ChessMove(KNIGHT, 3, 4, 4, 6),
+        ChessMove(KNIGHT, 3, 4, 5, 5),
+        ChessMove(KNIGHT, 3, 4, 5, 3),
+        ChessMove(KNIGHT, 3, 4, 4, 2),
     ]
-    assert chess_state._get_moves_knight(knight_1) == expected_moves
+    assert compare_move_tables(
+        chess_state._get_moves_knight(knight_1), expected_moves
+    )
 
 
 def test_knight_moves_blocked():
@@ -348,15 +375,17 @@ def test_knight_moves_blocked():
                         \n"
     )
     expected_moves = [
-        ChessMove(knight_1, 2, 2),
-        ChessMove(knight_1, 1, 3),
-        ChessMove(knight_1, 1, 5),
-        ChessMove(knight_1, 4, 6),
-        ChessMove(knight_1, 5, 5),
-        ChessMove(knight_1, 3, 5),
-        ChessMove(knight_1, 4, 2),
+        ChessMove(KNIGHT, 3, 4, 2, 2),
+        ChessMove(KNIGHT, 3, 4, 1, 3),
+        ChessMove(KNIGHT, 3, 4, 1, 5),
+        ChessMove(KNIGHT, 3, 4, 4, 6),
+        ChessMove(KNIGHT, 3, 4, 5, 5),
+        ChessMove(KNIGHT, 3, 4, 5, 3),
+        ChessMove(KNIGHT, 3, 4, 4, 2),
     ]
-    assert chess_state._get_moves_knight(knight_1) == expected_moves
+    assert compare_move_tables(
+        chess_state._get_moves_knight(knight_1), expected_moves
+    )
 
 
 def test_bishop_moves_blocked():
@@ -390,12 +419,14 @@ def test_bishop_moves_blocked():
                         \n"
     )
     expected_moves = [
-        ChessMove(bishop_1, 2, 2),
-        ChessMove(bishop_1, 4, 4),
-        ChessMove(bishop_1, 2, 4),
-        ChessMove(bishop_1, 4, 2),
+        ChessMove(BISHOP, 3, 3, 2, 2),
+        ChessMove(BISHOP, 3, 3, 4, 4),
+        ChessMove(BISHOP, 3, 3, 2, 4),
+        ChessMove(BISHOP, 3, 3, 4, 2),
     ]
-    assert chess_state._get_moves_bishop(bishop_1) == expected_moves
+    assert compare_move_tables(
+        chess_state._get_moves_bishop(bishop_1), expected_moves
+    )
 
 
 def test_bishop_moves_can_take():
@@ -429,16 +460,18 @@ def test_bishop_moves_can_take():
                         \n"
     )
     expected_moves = [
-        ChessMove(bishop_1, 2, 2),
-        ChessMove(bishop_1, 4, 4),
-        ChessMove(bishop_1, 2, 4),
-        ChessMove(bishop_1, 4, 2),
-        ChessMove(bishop_1, 1, 1),
-        ChessMove(bishop_1, 5, 5),
-        ChessMove(bishop_1, 1, 5),
-        ChessMove(bishop_1, 5, 1),
+        ChessMove(BISHOP, 3, 3, 2, 2),
+        ChessMove(BISHOP, 3, 3, 4, 4),
+        ChessMove(BISHOP, 3, 3, 2, 4),
+        ChessMove(BISHOP, 3, 3, 4, 2),
+        ChessMove(BISHOP, 3, 3, 1, 1),
+        ChessMove(BISHOP, 3, 3, 5, 5),
+        ChessMove(BISHOP, 3, 3, 1, 5),
+        ChessMove(BISHOP, 3, 3, 5, 1),
     ]
-    assert chess_state._get_moves_bishop(bishop_1) == expected_moves
+    assert compare_move_tables(
+        chess_state._get_moves_bishop(bishop_1), expected_moves
+    )
 
 
 def test_bishop_moves_no_edge_cases():
@@ -464,21 +497,23 @@ def test_bishop_moves_no_edge_cases():
                         \n"
     )
     expected_moves = [
-        ChessMove(bishop, 0, 0),
-        ChessMove(bishop, 1, 1),
-        ChessMove(bishop, 2, 2),
-        ChessMove(bishop, 4, 4),
-        ChessMove(bishop, 5, 5),
-        ChessMove(bishop, 6, 6),
-        ChessMove(bishop, 7, 7),
-        ChessMove(bishop, 0, 6),
-        ChessMove(bishop, 1, 5),
-        ChessMove(bishop, 2, 4),
-        ChessMove(bishop, 4, 2),
-        ChessMove(bishop, 5, 1),
-        ChessMove(bishop, 6, 0),
+        ChessMove(BISHOP, 3, 3, 0, 0),
+        ChessMove(BISHOP, 3, 3, 1, 1),
+        ChessMove(BISHOP, 3, 3, 2, 2),
+        ChessMove(BISHOP, 3, 3, 4, 4),
+        ChessMove(BISHOP, 3, 3, 5, 5),
+        ChessMove(BISHOP, 3, 3, 6, 6),
+        ChessMove(BISHOP, 3, 3, 7, 7),
+        ChessMove(BISHOP, 3, 3, 0, 6),
+        ChessMove(BISHOP, 3, 3, 1, 5),
+        ChessMove(BISHOP, 3, 3, 2, 4),
+        ChessMove(BISHOP, 3, 3, 4, 2),
+        ChessMove(BISHOP, 3, 3, 5, 1),
+        ChessMove(BISHOP, 3, 3, 6, 0),
     ]
-    assert chess_state._get_moves_bishop(bishop) == expected_moves
+    assert compare_move_tables(
+        chess_state._get_moves_bishop(bishop), expected_moves
+    )
 
 
 def test_rook_moves_no_edge_cases():
@@ -504,22 +539,24 @@ def test_rook_moves_no_edge_cases():
                         \n"
     )
     expected_moves = [
-        ChessMove(rook, 0, 3),
-        ChessMove(rook, 1, 3),
-        ChessMove(rook, 2, 3),
-        ChessMove(rook, 4, 3),
-        ChessMove(rook, 5, 3),
-        ChessMove(rook, 6, 3),
-        ChessMove(rook, 7, 3),
-        ChessMove(rook, 3, 7),
-        ChessMove(rook, 3, 6),
-        ChessMove(rook, 3, 5),
-        ChessMove(rook, 3, 4),
-        ChessMove(rook, 3, 2),
-        ChessMove(rook, 3, 1),
-        ChessMove(rook, 3, 0),
+        ChessMove(ROOK, 3, 3, 0, 3),
+        ChessMove(ROOK, 3, 3, 1, 3),
+        ChessMove(ROOK, 3, 3, 2, 3),
+        ChessMove(ROOK, 3, 3, 4, 3),
+        ChessMove(ROOK, 3, 3, 5, 3),
+        ChessMove(ROOK, 3, 3, 6, 3),
+        ChessMove(ROOK, 3, 3, 7, 3),
+        ChessMove(ROOK, 3, 3, 3, 7),
+        ChessMove(ROOK, 3, 3, 3, 6),
+        ChessMove(ROOK, 3, 3, 3, 5),
+        ChessMove(ROOK, 3, 3, 3, 4),
+        ChessMove(ROOK, 3, 3, 3, 2),
+        ChessMove(ROOK, 3, 3, 3, 1),
+        ChessMove(ROOK, 3, 3, 3, 0),
     ]
-    assert chess_state._get_moves_rook(rook) == expected_moves
+    assert compare_move_tables(
+        chess_state._get_moves_rook(rook), expected_moves
+    )
 
 
 def test_rook_moves_blocked():
@@ -553,12 +590,14 @@ def test_rook_moves_blocked():
                         \n"
     )
     expected_moves = [
-        ChessMove(rook_1, 2, 3),
-        ChessMove(rook_1, 4, 3),
-        ChessMove(rook_1, 3, 4),
-        ChessMove(rook_1, 3, 2),
+        ChessMove(ROOK, 3, 3, 2, 3),
+        ChessMove(ROOK, 3, 3, 4, 3),
+        ChessMove(ROOK, 3, 3, 3, 4),
+        ChessMove(ROOK, 3, 3, 3, 2),
     ]
-    assert chess_state._get_moves_rook(rook_1) == expected_moves
+    assert compare_move_tables(
+        chess_state._get_moves_rook(rook_1), expected_moves
+    )
 
 
 def test_rook_moves_can_take():
@@ -592,16 +631,18 @@ def test_rook_moves_can_take():
                         \n"
     )
     expected_moves = [
-        ChessMove(rook_1, 2, 3),
-        ChessMove(rook_1, 4, 3),
-        ChessMove(rook_1, 3, 4),
-        ChessMove(rook_1, 3, 2),
-        ChessMove(rook_1, 1, 3),
-        ChessMove(rook_1, 5, 3),
-        ChessMove(rook_1, 3, 5),
-        ChessMove(rook_1, 3, 1),
+        ChessMove(ROOK, 3, 3, 2, 3),
+        ChessMove(ROOK, 3, 3, 4, 3),
+        ChessMove(ROOK, 3, 3, 3, 4),
+        ChessMove(ROOK, 3, 3, 3, 2),
+        ChessMove(ROOK, 3, 3, 1, 3),
+        ChessMove(ROOK, 3, 3, 5, 3),
+        ChessMove(ROOK, 3, 3, 3, 5),
+        ChessMove(ROOK, 3, 3, 3, 1),
     ]
-    assert chess_state._get_moves_rook(rook_1) == expected_moves
+    assert compare_move_tables(
+        chess_state._get_moves_rook(rook_1), expected_moves
+    )
 
 
 def test_queen_moves_no_edge_cases():
@@ -627,35 +668,37 @@ def test_queen_moves_no_edge_cases():
                         \n"
     )
     expected_moves = [
-        ChessMove(queen, 0, 3),
-        ChessMove(queen, 1, 3),
-        ChessMove(queen, 2, 3),
-        ChessMove(queen, 4, 3),
-        ChessMove(queen, 5, 3),
-        ChessMove(queen, 6, 3),
-        ChessMove(queen, 7, 3),
-        ChessMove(queen, 3, 7),
-        ChessMove(queen, 3, 6),
-        ChessMove(queen, 3, 5),
-        ChessMove(queen, 3, 4),
-        ChessMove(queen, 3, 2),
-        ChessMove(queen, 3, 1),
-        ChessMove(queen, 3, 0),
-        ChessMove(queen, 0, 0),
-        ChessMove(queen, 1, 1),
-        ChessMove(queen, 2, 2),
-        ChessMove(queen, 4, 4),
-        ChessMove(queen, 5, 5),
-        ChessMove(queen, 6, 6),
-        ChessMove(queen, 7, 7),
-        ChessMove(queen, 0, 6),
-        ChessMove(queen, 1, 5),
-        ChessMove(queen, 2, 4),
-        ChessMove(queen, 4, 2),
-        ChessMove(queen, 5, 1),
-        ChessMove(queen, 6, 0),
+        ChessMove(QUEEN, 3, 3, 0, 3),
+        ChessMove(QUEEN, 3, 3, 1, 3),
+        ChessMove(QUEEN, 3, 3, 2, 3),
+        ChessMove(QUEEN, 3, 3, 4, 3),
+        ChessMove(QUEEN, 3, 3, 5, 3),
+        ChessMove(QUEEN, 3, 3, 6, 3),
+        ChessMove(QUEEN, 3, 3, 7, 3),
+        ChessMove(QUEEN, 3, 3, 3, 7),
+        ChessMove(QUEEN, 3, 3, 3, 6),
+        ChessMove(QUEEN, 3, 3, 3, 5),
+        ChessMove(QUEEN, 3, 3, 3, 4),
+        ChessMove(QUEEN, 3, 3, 3, 2),
+        ChessMove(QUEEN, 3, 3, 3, 1),
+        ChessMove(QUEEN, 3, 3, 3, 0),
+        ChessMove(QUEEN, 3, 3, 0, 0),
+        ChessMove(QUEEN, 3, 3, 1, 1),
+        ChessMove(QUEEN, 3, 3, 2, 2),
+        ChessMove(QUEEN, 3, 3, 4, 4),
+        ChessMove(QUEEN, 3, 3, 5, 5),
+        ChessMove(QUEEN, 3, 3, 6, 6),
+        ChessMove(QUEEN, 3, 3, 7, 7),
+        ChessMove(QUEEN, 3, 3, 0, 6),
+        ChessMove(QUEEN, 3, 3, 1, 5),
+        ChessMove(QUEEN, 3, 3, 2, 4),
+        ChessMove(QUEEN, 3, 3, 4, 2),
+        ChessMove(QUEEN, 3, 3, 5, 1),
+        ChessMove(QUEEN, 3, 3, 6, 0),
     ]
-    assert chess_state._get_moves_queen(queen) == expected_moves
+    assert compare_move_tables(
+        chess_state._get_moves_queen(queen), expected_moves
+    )
 
 
 def test_queen_moves_can_take():
@@ -688,25 +731,27 @@ def test_queen_moves_can_take():
                         \n"
     )
     expected_moves = [
-        ChessMove(queen, 2, 3),
-        ChessMove(queen, 4, 3),
-        ChessMove(queen, 3, 4),
-        ChessMove(queen, 3, 2),
-        ChessMove(queen, 2, 2),
-        ChessMove(queen, 4, 4),
-        ChessMove(queen, 2, 4),
-        ChessMove(queen, 4, 2),
-        ChessMove(queen, 3, 5),
-        ChessMove(queen, 3, 6),
-        ChessMove(queen, 3, 7),
-        ChessMove(queen, 5, 5),
-        ChessMove(queen, 6, 6),
-        ChessMove(queen, 7, 7),
-        ChessMove(queen, 3, 5),
-        ChessMove(queen, 3, 6),
-        ChessMove(queen, 3, 7),
+        ChessMove(QUEEN, 3, 3, 2, 3),
+        ChessMove(QUEEN, 3, 3, 4, 3),
+        ChessMove(QUEEN, 3, 3, 3, 4),
+        ChessMove(QUEEN, 3, 3, 3, 2),
+        ChessMove(QUEEN, 3, 3, 2, 2),
+        ChessMove(QUEEN, 3, 3, 4, 4),
+        ChessMove(QUEEN, 3, 3, 2, 4),
+        ChessMove(QUEEN, 3, 3, 4, 2),
+        ChessMove(QUEEN, 3, 3, 3, 5),
+        ChessMove(QUEEN, 3, 3, 3, 6),
+        ChessMove(QUEEN, 3, 3, 3, 7),
+        ChessMove(QUEEN, 3, 3, 5, 5),
+        ChessMove(QUEEN, 3, 3, 6, 6),
+        ChessMove(QUEEN, 3, 3, 7, 7),
+        ChessMove(QUEEN, 3, 3, 5, 3),
+        ChessMove(QUEEN, 3, 3, 6, 3),
+        ChessMove(QUEEN, 3, 3, 7, 3),
     ]
-    assert chess_state._get_moves_queen(queen) == expected_moves
+    assert compare_move_tables(
+        chess_state._get_moves_queen(queen), expected_moves
+    )
 
 
 def test_queen_moves_blocked():
@@ -739,20 +784,22 @@ def test_queen_moves_blocked():
                         \n"
     )
     expected_moves = [
-        ChessMove(queen, 4, 3),
-        ChessMove(queen, 3, 4),
-        ChessMove(queen, 4, 4),
-        ChessMove(queen, 3, 5),
-        ChessMove(queen, 3, 6),
-        ChessMove(queen, 3, 7),
-        ChessMove(queen, 5, 5),
-        ChessMove(queen, 6, 6),
-        ChessMove(queen, 7, 7),
-        ChessMove(queen, 3, 5),
-        ChessMove(queen, 3, 6),
-        ChessMove(queen, 3, 7),
+        ChessMove(QUEEN, 3, 3, 4, 3),
+        ChessMove(QUEEN, 3, 3, 3, 4),
+        ChessMove(QUEEN, 3, 3, 4, 4),
+        ChessMove(QUEEN, 3, 3, 3, 5),
+        ChessMove(QUEEN, 3, 3, 3, 6),
+        ChessMove(QUEEN, 3, 3, 3, 7),
+        ChessMove(QUEEN, 3, 3, 5, 5),
+        ChessMove(QUEEN, 3, 3, 6, 6),
+        ChessMove(QUEEN, 3, 3, 7, 7),
+        ChessMove(QUEEN, 3, 3, 5, 3),
+        ChessMove(QUEEN, 3, 3, 6, 3),
+        ChessMove(QUEEN, 3, 3, 7, 3),
     ]
-    assert chess_state._get_moves_queen(queen) == expected_moves
+    assert compare_move_tables(
+        chess_state._get_moves_queen(queen), expected_moves
+    )
 
 
 def test_king_moves_no_edge_cases():
@@ -778,16 +825,18 @@ def test_king_moves_no_edge_cases():
                         \n"
     )
     expected_moves = [
-        ChessMove(king, 2, 3),
-        ChessMove(king, 4, 3),
-        ChessMove(king, 3, 4),
-        ChessMove(king, 3, 2),
-        ChessMove(king, 2, 2),
-        ChessMove(king, 4, 4),
-        ChessMove(king, 2, 4),
-        ChessMove(king, 4, 2),
+        ChessMove(KING, 3, 3, 2, 3),
+        ChessMove(KING, 3, 3, 4, 3),
+        ChessMove(KING, 3, 3, 3, 4),
+        ChessMove(KING, 3, 3, 3, 2),
+        ChessMove(KING, 3, 3, 2, 2),
+        ChessMove(KING, 3, 3, 4, 4),
+        ChessMove(KING, 3, 3, 2, 4),
+        ChessMove(KING, 3, 3, 4, 2),
     ]
-    assert chess_state._get_moves_king(king) == expected_moves
+    assert compare_move_tables(
+        chess_state._get_moves_king(king), expected_moves
+    )
 
 
 def test_king_moves_can_take():
@@ -820,16 +869,18 @@ def test_king_moves_can_take():
                         \n"
     )
     expected_moves = [
-        ChessMove(king, 2, 3),
-        ChessMove(king, 4, 3),
-        ChessMove(king, 3, 4),
-        ChessMove(king, 3, 2),
-        ChessMove(king, 2, 2),
-        ChessMove(king, 4, 4),
-        ChessMove(king, 2, 4),
-        ChessMove(king, 4, 2),
+        ChessMove(KING, 3, 3, 2, 3),
+        ChessMove(KING, 3, 3, 4, 3),
+        ChessMove(KING, 3, 3, 3, 4),
+        ChessMove(KING, 3, 3, 3, 2),
+        ChessMove(KING, 3, 3, 2, 2),
+        ChessMove(KING, 3, 3, 4, 4),
+        ChessMove(KING, 3, 3, 2, 4),
+        ChessMove(KING, 3, 3, 4, 2),
     ]
-    assert chess_state._get_moves_king(king) == expected_moves
+    assert compare_move_tables(
+        chess_state._get_moves_king(king), expected_moves
+    )
 
 
 def test_king_moves_blocked():
@@ -862,11 +913,13 @@ def test_king_moves_blocked():
                         \n"
     )
     expected_moves = [
-        ChessMove(king, 4, 3),
-        ChessMove(king, 3, 4),
-        ChessMove(king, 4, 4),
+        ChessMove(KING, 3, 3, 4, 3),
+        ChessMove(KING, 3, 3, 3, 4),
+        ChessMove(KING, 3, 3, 4, 4),
     ]
-    assert chess_state._get_moves_king(king) == expected_moves
+    assert compare_move_tables(
+        chess_state._get_moves_king(king), expected_moves
+    )
 
 
 def test_king_moves_can_castle():
@@ -892,15 +945,17 @@ def test_king_moves_can_castle():
 R1          K1       R1 \n"
     )
     expected_moves = [
-        ChessMove(king, 3, 0),
-        ChessMove(king, 3, 1),
-        ChessMove(king, 4, 1),
-        ChessMove(king, 5, 1),
-        ChessMove(king, 5, 0),
-        ChessMove(king, 2, 0),
-        ChessMove(king, 6, 0),
+        ChessMove(KING, 4, 0, 3, 0),
+        ChessMove(KING, 4, 0, 3, 1),
+        ChessMove(KING, 4, 0, 4, 1),
+        ChessMove(KING, 4, 0, 5, 1),
+        ChessMove(KING, 4, 0, 5, 0),
+        ChessMove(KING, 4, 0, 2, 0),
+        ChessMove(KING, 4, 0, 6, 0),
     ]
-    assert chess_state._get_moves_king(king) == expected_moves
+    assert compare_move_tables(
+        chess_state._get_moves_king(king), expected_moves
+    )
 
 
 def test_king_moves_cant_castle_king_moved():
@@ -926,13 +981,15 @@ def test_king_moves_cant_castle_king_moved():
 R1          K1       R1 \n"
     )
     expected_moves = [
-        ChessMove(king, 3, 0),
-        ChessMove(king, 3, 1),
-        ChessMove(king, 4, 1),
-        ChessMove(king, 5, 1),
-        ChessMove(king, 5, 0),
+        ChessMove(KING, 4, 0, 3, 0),
+        ChessMove(KING, 4, 0, 3, 1),
+        ChessMove(KING, 4, 0, 4, 1),
+        ChessMove(KING, 4, 0, 5, 1),
+        ChessMove(KING, 4, 0, 5, 0),
     ]
-    assert chess_state._get_moves_king(king) == expected_moves
+    assert compare_move_tables(
+        chess_state._get_moves_king(king), expected_moves
+    )
 
 
 def test_king_moves_cant_castle_rooks_moved():
@@ -958,13 +1015,15 @@ def test_king_moves_cant_castle_rooks_moved():
 R1          K1       R1 \n"
     )
     expected_moves = [
-        ChessMove(king, 3, 0),
-        ChessMove(king, 3, 1),
-        ChessMove(king, 4, 1),
-        ChessMove(king, 5, 1),
-        ChessMove(king, 5, 0),
+        ChessMove(KING, 4, 0, 3, 0),
+        ChessMove(KING, 4, 0, 3, 1),
+        ChessMove(KING, 4, 0, 4, 1),
+        ChessMove(KING, 4, 0, 5, 1),
+        ChessMove(KING, 4, 0, 5, 0),
     ]
-    assert chess_state._get_moves_king(king) == expected_moves
+    assert compare_move_tables(
+        chess_state._get_moves_king(king), expected_moves
+    )
 
 
 def test_chess_state_init_empty():
@@ -990,28 +1049,28 @@ def test_get_moves_init_empty():
     player_2 = Player("2")
     chess_state = ChessState(player_1, player_2)
     expected_moves = [
-        ChessMove(ChessPiece(PAWN, 0, 1, player_1), 0, 2),
-        ChessMove(ChessPiece(PAWN, 0, 1, player_1), 0, 3),
-        ChessMove(ChessPiece(PAWN, 1, 1, player_1), 0, 2),
-        ChessMove(ChessPiece(PAWN, 1, 1, player_1), 0, 3),
-        ChessMove(ChessPiece(PAWN, 2, 1, player_1), 0, 2),
-        ChessMove(ChessPiece(PAWN, 2, 1, player_1), 0, 3),
-        ChessMove(ChessPiece(PAWN, 3, 1, player_1), 0, 2),
-        ChessMove(ChessPiece(PAWN, 3, 1, player_1), 0, 3),
-        ChessMove(ChessPiece(PAWN, 4, 1, player_1), 0, 2),
-        ChessMove(ChessPiece(PAWN, 4, 1, player_1), 0, 3),
-        ChessMove(ChessPiece(PAWN, 5, 1, player_1), 0, 2),
-        ChessMove(ChessPiece(PAWN, 5, 1, player_1), 0, 3),
-        ChessMove(ChessPiece(PAWN, 6, 1, player_1), 0, 2),
-        ChessMove(ChessPiece(PAWN, 6, 1, player_1), 0, 3),
-        ChessMove(ChessPiece(PAWN, 7, 1, player_1), 0, 2),
-        ChessMove(ChessPiece(PAWN, 7, 1, player_1), 0, 3),
-        ChessMove(ChessPiece(KNIGHT, 1, 0, player_1), 0, 2),
-        ChessMove(ChessPiece(KNIGHT, 1, 0, player_1), 2, 2),
-        ChessMove(ChessPiece(KNIGHT, 6, 0, player_1), 5, 2),
-        ChessMove(ChessPiece(KNIGHT, 6, 0, player_1), 7, 2),
+        ChessMove(PAWN, 0, 1, 0, 2),
+        ChessMove(PAWN, 0, 1, 0, 3),
+        ChessMove(PAWN, 1, 1, 1, 2),
+        ChessMove(PAWN, 1, 1, 1, 3),
+        ChessMove(PAWN, 2, 1, 2, 2),
+        ChessMove(PAWN, 2, 1, 2, 3),
+        ChessMove(PAWN, 3, 1, 3, 2),
+        ChessMove(PAWN, 3, 1, 3, 3),
+        ChessMove(PAWN, 4, 1, 4, 2),
+        ChessMove(PAWN, 4, 1, 4, 3),
+        ChessMove(PAWN, 5, 1, 5, 2),
+        ChessMove(PAWN, 5, 1, 5, 3),
+        ChessMove(PAWN, 6, 1, 6, 2),
+        ChessMove(PAWN, 6, 1, 6, 3),
+        ChessMove(PAWN, 7, 1, 7, 2),
+        ChessMove(PAWN, 7, 1, 7, 3),
+        ChessMove(KNIGHT, 1, 0, 0, 2),
+        ChessMove(KNIGHT, 1, 0, 2, 2),
+        ChessMove(KNIGHT, 6, 0, 5, 2),
+        ChessMove(KNIGHT, 6, 0, 7, 2),
     ]
-    assert chess_state.get_moves() == expected_moves
+    assert compare_move_tables(chess_state.get_moves(), expected_moves)
 
 
 def test_get_moves_init_empty_black_move():
@@ -1019,25 +1078,25 @@ def test_get_moves_init_empty_black_move():
     player_2 = Player("2")
     chess_state = ChessState(player_2, player_1, player_1)
     expected_moves = [
-        ChessMove(ChessPiece(PAWN, 0, 6, player_2), 0, 5),
-        ChessMove(ChessPiece(PAWN, 0, 6, player_2), 0, 4),
-        ChessMove(ChessPiece(PAWN, 1, 6, player_2), 0, 5),
-        ChessMove(ChessPiece(PAWN, 1, 6, player_2), 0, 4),
-        ChessMove(ChessPiece(PAWN, 2, 6, player_2), 0, 5),
-        ChessMove(ChessPiece(PAWN, 2, 6, player_2), 0, 4),
-        ChessMove(ChessPiece(PAWN, 3, 6, player_2), 0, 5),
-        ChessMove(ChessPiece(PAWN, 3, 6, player_2), 0, 4),
-        ChessMove(ChessPiece(PAWN, 4, 6, player_2), 0, 5),
-        ChessMove(ChessPiece(PAWN, 4, 6, player_2), 0, 4),
-        ChessMove(ChessPiece(PAWN, 5, 6, player_2), 0, 5),
-        ChessMove(ChessPiece(PAWN, 5, 6, player_2), 0, 4),
-        ChessMove(ChessPiece(PAWN, 6, 6, player_2), 0, 5),
-        ChessMove(ChessPiece(PAWN, 6, 6, player_2), 0, 4),
-        ChessMove(ChessPiece(PAWN, 7, 6, player_2), 0, 5),
-        ChessMove(ChessPiece(PAWN, 7, 6, player_2), 0, 4),
-        ChessMove(ChessPiece(KNIGHT, 1, 7, player_2), 0, 5),
-        ChessMove(ChessPiece(KNIGHT, 1, 7, player_2), 2, 5),
-        ChessMove(ChessPiece(KNIGHT, 6, 7, player_2), 5, 5),
-        ChessMove(ChessPiece(KNIGHT, 6, 7, player_2), 7, 5),
+        ChessMove(PAWN, 0, 6, 0, 5),
+        ChessMove(PAWN, 0, 6, 0, 4),
+        ChessMove(PAWN, 1, 6, 1, 5),
+        ChessMove(PAWN, 1, 6, 1, 4),
+        ChessMove(PAWN, 2, 6, 2, 5),
+        ChessMove(PAWN, 2, 6, 2, 4),
+        ChessMove(PAWN, 3, 6, 3, 5),
+        ChessMove(PAWN, 3, 6, 3, 4),
+        ChessMove(PAWN, 4, 6, 4, 5),
+        ChessMove(PAWN, 4, 6, 4, 4),
+        ChessMove(PAWN, 5, 6, 5, 5),
+        ChessMove(PAWN, 5, 6, 5, 4),
+        ChessMove(PAWN, 6, 6, 6, 5),
+        ChessMove(PAWN, 6, 6, 6, 4),
+        ChessMove(PAWN, 7, 6, 7, 5),
+        ChessMove(PAWN, 7, 6, 7, 4),
+        ChessMove(KNIGHT, 1, 7, 0, 5),
+        ChessMove(KNIGHT, 1, 7, 2, 5),
+        ChessMove(KNIGHT, 6, 7, 5, 5),
+        ChessMove(KNIGHT, 6, 7, 7, 5),
     ]
-    assert chess_state.get_moves() == expected_moves
+    assert compare_move_tables(chess_state.get_moves(), expected_moves)
