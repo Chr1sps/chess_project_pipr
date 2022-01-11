@@ -24,6 +24,11 @@ class IncorrectPieceTypeException(Exception):
         super().__init__("Wrong chess piece type in the called function.")
 
 
+class InvalidMoveException(Exception):
+    def __init__(self):
+        super().__init__("Invalid move given to the function.")
+
+
 class ChessPiece:
     def __init__(
         self,
@@ -449,8 +454,143 @@ class ChessState(State):
     def get_current_player(self) -> Player:
         return self._current_player
 
+    def _get_current_players_king(self) -> ChessPiece:
+        for row in self._board:
+            for square in row:
+                if (
+                    square is not None
+                    and square.type() == KING
+                    and square.player() == self._current_player
+                ):
+                    return square
+
     def make_move(self, move: ChessMove) -> "ChessState":
-        pass
+        new_board = [[square for square in row] for row in self._board]
+        valid_moves = self.get_moves()
+        if move not in valid_moves:
+            raise InvalidMoveException
+        moved_piece = new_board[move.start_row][move.start_column]
+        new_board[move.start_row][move.start_column] = None
+        # ^ might accidentally delete the moved_piece object !
+
+        if moved_piece.type() == PAWN:
+            row_shift = move.end_row - move.start_row
+            column_shift = move.end_column - move.start_column
+
+            if row_shift in (-2, 2):  # first move
+                new_board[move.end_row][move.end_column] = ChessPiece(
+                    PAWN,
+                    move.end_column,
+                    move.end_row,
+                    moved_piece.player(),
+                    False,
+                    True,
+                )
+
+            elif column_shift in (
+                -1,
+                1,
+            ):  # en passant and taking
+                piece_next_to_the_pawn = self._board[moved_piece.row()][
+                    move.end_column
+                ]
+                if (
+                    piece_next_to_the_pawn.type() == PAWN
+                    and piece_next_to_the_pawn.player() != moved_piece.player()
+                    and piece_next_to_the_pawn.is_en_passantable()
+                ):
+                    new_board[moved_piece.row()][move.end_column] = None
+                new_board[move.end_row][move.end_column] = ChessPiece(
+                    PAWN,
+                    move.end_column,
+                    move.end_row,
+                    moved_piece.player(),
+                    False,
+                    False,
+                )
+
+            else:
+                new_board[move.end_row][move.end_column] = ChessPiece(
+                    PAWN,
+                    move.end_column,
+                    move.end_row,
+                    moved_piece.player(),
+                    False,
+                    False,
+                )
+
+        elif moved_piece.type() in (ROOK, KING):
+            new_board[move.end_row][move.end_column] = ChessPiece(
+                moved_piece.type(),
+                move.end_column,
+                move.end_row,
+                moved_piece.player(),
+                False,
+            )
+
+        else:
+            new_board[move.end_row][move.end_column] = ChessPiece(
+                moved_piece.type(),
+                move.end_column,
+                move.end_row,
+                moved_piece.player(),
+            )
+
+        if moved_piece.type() == KING:
+            possible_end_positions_other_player = [
+                (enemy_move.end_column, enemy_move.end_row)
+                for enemy_move in ChessState(
+                    self._other_player,
+                    self._current_player,
+                    self._white,
+                    self._board,
+                ).get_moves()
+            ]
+            if move == ChessMove(4, 0, 6, 0):
+                squares_to_check = ((4, 0), (5, 0), (6, 0))
+                if any(
+                    square in possible_end_positions_other_player
+                    for square in squares_to_check
+                ):
+                    raise InvalidMoveException
+                else:
+                    new_board[0][5] = ChessPiece(
+                        ROOK, 5, 0, self._current_player, False
+                    )
+                    new_board[0][7] = None
+            elif move == ChessMove(4, 0, 2, 0):
+                squares_to_check = ((4, 0), (3, 0), (2, 0))
+                if any(
+                    square in possible_end_positions_other_player
+                    for square in squares_to_check
+                ):
+                    raise InvalidMoveException
+                else:
+                    new_board[0][3] = ChessPiece(
+                        ROOK, 3, 0, self._current_player, False
+                    )
+                    new_board[0][0] = None
+
+        new_state = ChessState(
+            self._other_player, self._current_player, self._white, new_board
+        )
+        new_state_current_player = ChessState(
+            self._current_player, self._other_player, self._white, new_board
+        )
+        new_state_current_player_king = (
+            new_state_current_player._get_current_players_king()
+        )
+        new_state_current_player_king_pos = (
+            new_state_current_player_king.column(),
+            new_state_current_player_king.row(),
+        )
+        new_state_moves_end_positions = [
+            (new_move.end_column, new_move.end_row)
+            for new_move in new_state.get_moves()
+        ]
+        if new_state_current_player_king_pos in new_state_moves_end_positions:
+            raise InvalidMoveException
+        return new_state
 
     def is_finished(self) -> bool:
         pass

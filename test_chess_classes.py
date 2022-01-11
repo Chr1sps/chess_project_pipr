@@ -10,6 +10,7 @@ from chess_classes import (
     ChessPiece,
     ChessMove,
     ChessState,
+    InvalidMoveException,
 )
 from typing import Iterable
 from two_player_games.player import Player
@@ -42,15 +43,15 @@ def test_chess_piece_init_in_bounds():
 
 
 def test_chess_piece_init_out_of_bounds():
+    player_1 = Player("1")
     with raises(CoordinatesOutOfBoundsException):
-        player_1 = Player("1")
-        chess_piece = ChessPiece(PAWN, -1, 1, player_1)
+        ChessPiece(PAWN, -1, 1, player_1)
 
 
 def test_chess_piece_incorrect_type():
+    player_1 = Player("1")
     with raises(IncorrectPieceTypeException):
-        player_1 = Player("1")
-        chess_piece = ChessPiece(-1, 1, 1, player_1)
+        ChessPiece(-1, 1, 1, player_1)
 
 
 def test_pawn_moves_no_edge_cases():
@@ -1100,3 +1101,153 @@ def test_get_moves_init_empty_black_move():
         ChessMove(6, 7, 7, 5),
     ]
     assert compare_move_tables(chess_state.get_moves(), expected_moves)
+
+
+def test_make_move_init_empty():
+    player_1 = Player("1")
+    player_2 = Player("2")
+    chess_state = ChessState(player_1, player_2)
+    move = ChessMove(4, 1, 4, 3)
+    new_state = chess_state.make_move(move)
+    assert (
+        str(new_state)
+        == "\
+R2 N2 B2 Q2 K2 B2 N2 R2 \n\
+P2 P2 P2 P2 P2 P2 P2 P2 \n\
+                        \n\
+                        \n\
+            P1          \n\
+                        \n\
+P1 P1 P1 P1    P1 P1 P1 \n\
+R1 N1 B1 Q1 K1 B1 N1 R1 \n"
+    )
+
+
+def test_make_move_take():
+    player_1 = Player("1")
+    player_2 = Player("2")
+    board = (
+        [
+            [
+                ChessPiece(KING, 0, 0, player_1, False),
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+                ChessPiece(ROOK, 7, 0, player_1, False),
+            ]
+        ]
+        + [[None for _ in range(8)] for _ in range(6)]
+        + [
+            [
+                ChessPiece(KING, 0, 7, player_2, False),
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+                ChessPiece(ROOK, 7, 7, player_2, False),
+            ]
+        ]
+    )
+    state = ChessState(player_1, player_2, player_1, board)
+    move = ChessMove(7, 0, 7, 7)
+    new_state = state.make_move(move)
+    assert (
+        str(new_state)
+        == "\
+K2                   R1 \n\
+                        \n\
+                        \n\
+                        \n\
+                        \n\
+                        \n\
+                        \n\
+K1                      \n"
+    )
+
+
+def test_make_move_cant_castle_under_check():
+    player_1 = Player("1")
+    player_2 = Player("2")
+    board = (
+        [
+            [
+                None,
+                None,
+                None,
+                None,
+                ChessPiece(KING, 4, 0, player_1),
+                None,
+                None,
+                ChessPiece(ROOK, 7, 0, player_1),
+            ]
+        ]
+        + [[None for _ in range(8)] for _ in range(6)]
+        + [
+            [
+                None,
+                None,
+                None,
+                None,
+                ChessPiece(ROOK, 4, 7, player_2),
+                None,
+                None,
+                ChessPiece(KING, 7, 7, player_2),
+            ]
+        ]
+    )
+    state = ChessState(player_1, player_2, player_1, board)
+    move = ChessMove(4, 0, 6, 0)
+    with raises(InvalidMoveException):
+        state.make_move(move)
+
+
+def test_make_move_castles():
+    player_1 = Player("1")
+    player_2 = Player("2")
+    board = (
+        [
+            [
+                None,
+                None,
+                None,
+                None,
+                ChessPiece(KING, 4, 0, player_1),
+                None,
+                None,
+                ChessPiece(ROOK, 7, 0, player_1),
+            ]
+        ]
+        + [[None for _ in range(8)] for _ in range(6)]
+        + [
+            [
+                None,
+                None,
+                None,
+                None,
+                ChessPiece(KING, 4, 7, player_2),
+                None,
+                None,
+                ChessPiece(ROOK, 7, 7, player_2),
+            ]
+        ]
+    )
+    state = ChessState(player_1, player_2, player_1, board)
+    move = ChessMove(4, 0, 6, 0)
+    new_state = state.make_move(move)
+    assert (
+        str(new_state)
+        == "\
+            K2       R2 \n\
+                        \n\
+                        \n\
+                        \n\
+                        \n\
+                        \n\
+                        \n\
+               R1 K1    \n"
+    )
