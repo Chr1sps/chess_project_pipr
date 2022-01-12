@@ -1406,3 +1406,56 @@ def test_make_move_cant_castle_queenside_under_check():
     move = ChessMove(4, 0, 2, 0)
     with raises(InvalidMoveException):
         state.make_move(move)
+
+
+def test_is_finished_init_empty():
+    player_1 = Player("1")
+    player_2 = Player("2")
+    chess_state = ChessState(player_1, player_2)
+    assert not chess_state.is_finished()
+
+
+def test_is_finished_true():
+    player_1 = Player("1")
+    player_2 = Player("2")
+    board = (
+        [
+            [
+                None,
+                None,
+                None,
+                None,
+                ChessPiece(KING, 4, 0, player_1),
+                None,
+                None,
+                None,
+            ]
+        ]
+        + [
+            [
+                None,
+                None,
+                None,
+                None,
+                ChessPiece(PAWN, 4, 1, player_2, False),
+                None,
+                None,
+                None,
+            ]
+        ]
+        + [
+            [
+                None,
+                None,
+                None,
+                None,
+                ChessPiece(KING, 4, 2, player_2),
+                None,
+                None,
+                None,
+            ]
+        ]
+        + [[None for _ in range(8)] for _ in range(6)]
+    )
+    chess_state = ChessState(player_1, player_2, player_1, board)
+    assert chess_state.is_finished()

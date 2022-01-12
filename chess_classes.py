@@ -611,7 +611,14 @@ class ChessState(State):
         return new_state
 
     def is_finished(self) -> bool:
-        pass
+        get_moves_list = self.get_moves()
+        for move in get_moves_list:
+            try:
+                self.make_move(move)
+                return False
+            except InvalidMoveException:
+                continue
+        return True
 
     def get_winner(self) -> Optional[Player]:
         pass
