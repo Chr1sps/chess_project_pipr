@@ -1459,3 +1459,56 @@ def test_is_finished_true():
     )
     chess_state = ChessState(player_1, player_2, player_1, board)
     assert chess_state.is_finished()
+
+
+def test_get_winner_init_empty():
+    player_1 = Player("1")
+    player_2 = Player("2")
+    chess_state = ChessState(player_1, player_2)
+    assert chess_state.get_winner() is None
+
+
+def test_get_winner_draw():
+    player_1 = Player("1")
+    player_2 = Player("2")
+    board = (
+        [
+            [
+                None,
+                None,
+                None,
+                None,
+                ChessPiece(KING, 4, 0, player_1),
+                None,
+                None,
+                None,
+            ]
+        ]
+        + [
+            [
+                None,
+                None,
+                None,
+                None,
+                ChessPiece(PAWN, 4, 1, player_2, False),
+                None,
+                None,
+                None,
+            ]
+        ]
+        + [
+            [
+                None,
+                None,
+                None,
+                None,
+                ChessPiece(KING, 4, 2, player_2),
+                None,
+                None,
+                None,
+            ]
+        ]
+        + [[None for _ in range(8)] for _ in range(6)]
+    )
+    chess_state = ChessState(player_1, player_2, player_1, board)
+    assert chess_state.get_winner() is None
