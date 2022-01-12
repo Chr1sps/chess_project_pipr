@@ -1206,6 +1206,53 @@ def test_make_move_cant_castle_under_check():
         state.make_move(move)
 
 
+def test_make_move_castles_queenside():
+    player_1 = Player("1")
+    player_2 = Player("2")
+    board = (
+        [
+            [
+                ChessPiece(ROOK, 0, 0, player_1),
+                None,
+                None,
+                None,
+                ChessPiece(KING, 4, 0, player_1),
+                None,
+                None,
+                None,
+            ]
+        ]
+        + [[None for _ in range(8)] for _ in range(6)]
+        + [
+            [
+                ChessPiece(ROOK, 0, 7, player_2),
+                None,
+                None,
+                None,
+                ChessPiece(KING, 4, 7, player_2),
+                None,
+                None,
+                None,
+            ]
+        ]
+    )
+    state = ChessState(player_1, player_2, player_1, board)
+    move = ChessMove(4, 0, 2, 0)
+    new_state = state.make_move(move)
+    assert (
+        str(new_state)
+        == "\
+R2          K2          \n\
+                        \n\
+                        \n\
+                        \n\
+                        \n\
+                        \n\
+                        \n\
+      K1 R1             \n"
+    )
+
+
 def test_make_move_castles():
     player_1 = Player("1")
     player_2 = Player("2")
@@ -1251,3 +1298,111 @@ def test_make_move_castles():
                         \n\
                R1 K1    \n"
     )
+
+
+def test_make_move_cant_castle_blocked():
+    player_1 = Player("1")
+    player_2 = Player("2")
+    board = (
+        [
+            [
+                None,
+                None,
+                None,
+                None,
+                ChessPiece(KING, 4, 0, player_1),
+                None,
+                ChessPiece(KNIGHT, 6, 0, player_1),
+                ChessPiece(ROOK, 7, 0, player_1),
+            ]
+        ]
+        + [[None for _ in range(8)] for _ in range(6)]
+        + [
+            [
+                None,
+                None,
+                None,
+                None,
+                ChessPiece(ROOK, 4, 7, player_2),
+                None,
+                None,
+                ChessPiece(KING, 7, 7, player_2),
+            ]
+        ]
+    )
+    state = ChessState(player_1, player_2, player_1, board)
+    move = ChessMove(4, 0, 6, 0)
+    with raises(InvalidMoveException):
+        state.make_move(move)
+
+
+def test_make_move_cant_castle_queenside_blocked():
+    player_1 = Player("1")
+    player_2 = Player("2")
+    board = (
+        [
+            [
+                ChessPiece(ROOK, 0, 0, player_1),
+                ChessPiece(KNIGHT, 1, 0, player_1),
+                None,
+                None,
+                ChessPiece(KING, 4, 0, player_1),
+                None,
+                None,
+                None,
+            ]
+        ]
+        + [[None for _ in range(8)] for _ in range(6)]
+        + [
+            [
+                ChessPiece(ROOK, 0, 7, player_2),
+                None,
+                None,
+                None,
+                ChessPiece(KING, 4, 7, player_2),
+                None,
+                None,
+                None,
+            ]
+        ]
+    )
+    state = ChessState(player_1, player_2, player_1, board)
+    move = ChessMove(4, 0, 2, 0)
+    with raises(InvalidMoveException):
+        state.make_move(move)
+
+
+def test_make_move_cant_castle_queenside_under_check():
+    player_1 = Player("1")
+    player_2 = Player("2")
+    board = (
+        [
+            [
+                ChessPiece(ROOK, 0, 0, player_1),
+                None,
+                None,
+                None,
+                ChessPiece(KING, 4, 0, player_1),
+                None,
+                None,
+                None,
+            ]
+        ]
+        + [[None for _ in range(8)] for _ in range(6)]
+        + [
+            [
+                ChessPiece(KING, 0, 7, player_2),
+                None,
+                None,
+                None,
+                ChessPiece(ROOK, 4, 7, player_2),
+                None,
+                None,
+                None,
+            ]
+        ]
+    )
+    state = ChessState(player_1, player_2, player_1, board)
+    move = ChessMove(4, 0, 2, 0)
+    with raises(InvalidMoveException):
+        state.make_move(move)
