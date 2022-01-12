@@ -621,7 +621,24 @@ class ChessState(State):
         return True
 
     def get_winner(self) -> Optional[Player]:
-        pass
+        if self.is_finished():
+            current_king = self._get_current_players_king()
+            state_switched_sides = ChessState(
+                self._other_player,
+                self._current_player,
+                self._white,
+                self._board,
+            )
+            other_player_moves_end_positions = [
+                (move.end_column(), move.end_row())
+                for move in state_switched_sides.get_moves()
+            ]
+            if (
+                current_king.column(),
+                current_king.row(),
+            ) in other_player_moves_end_positions:
+                return self._other_player
+        return None
 
     def __str__(self) -> str:
 
@@ -637,8 +654,8 @@ class ChessState(State):
 class ChessGame(Game):
     """Class that represents a chess game"""
 
-    FIRST_PLAYER_DEFAULT_CHAR = "1"
-    SECOND_PLAYER_DEFAULT_CHAR = "2"
+    FIRST_PLAYER_DEFAULT_CHAR = "W"
+    SECOND_PLAYER_DEFAULT_CHAR = "B"
 
     def __init__(
         self, first_player: Player = None, second_player: Player = None
