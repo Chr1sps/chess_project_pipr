@@ -117,23 +117,41 @@ class ChessMove(Move):
         end_column: int,
         end_row: int,
     ):
-        self.start_column = start_column
-        self.start_row = start_row
-        self.end_column = end_column
-        self.end_row = end_row
+        if all(
+            coordinate in range(8)
+            for coordinate in (start_column, start_row, end_column, end_row)
+        ):
+            self._start_column = start_column
+            self._start_row = start_row
+            self._end_column = end_column
+            self._end_row = end_row
+        else:
+            raise CoordinatesOutOfBoundsException
+
+    def start_column(self) -> int:
+        return self._start_column
+
+    def start_row(self) -> int:
+        return self._start_row
+
+    def end_column(self) -> int:
+        return self._end_column
+
+    def end_row(self) -> int:
+        return self._end_row
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, ChessMove):
             return False
         return (
-            self.start_column == other.start_column
-            and self.start_row == other.start_row
-            and self.end_column == other.end_column
-            and self.end_row == other.end_row
+            self._start_column == other._start_column
+            and self._start_row == other._start_row
+            and self._end_column == other._end_column
+            and self._end_row == other._end_row
         )
 
     def __repr__(self) -> str:
-        return f"{self.start_column} {self.start_row} move to {self.end_column} {self.end_row}"
+        return f"{self._start_column} {self._start_row} move to {self._end_column} {self._end_row}"
 
 
 class ChessState(State):
@@ -469,19 +487,19 @@ class ChessState(State):
         valid_moves = self.get_moves()
         if move not in valid_moves:
             raise InvalidMoveException
-        moved_piece = new_board[move.start_row][move.start_column]
-        new_board[move.start_row][move.start_column] = None
+        moved_piece = new_board[move.start_row()][move.start_column()]
+        new_board[move.start_row()][move.start_column()] = None
         # ^ might accidentally delete the moved_piece object !
 
         if moved_piece.type() == PAWN:
-            row_shift = move.end_row - move.start_row
-            column_shift = move.end_column - move.start_column
+            row_shift = move.end_row() - move.start_row()
+            column_shift = move.end_column() - move.start_column()
 
             if row_shift in (-2, 2):  # first move
-                new_board[move.end_row][move.end_column] = ChessPiece(
+                new_board[move.end_row()][move.end_column()] = ChessPiece(
                     PAWN,
-                    move.end_column,
-                    move.end_row,
+                    move.end_column(),
+                    move.end_row(),
                     moved_piece.player(),
                     False,
                     True,
@@ -492,53 +510,53 @@ class ChessState(State):
                 1,
             ):  # en passant and taking
                 piece_next_to_the_pawn = self._board[moved_piece.row()][
-                    move.end_column
+                    move.end_column()
                 ]
                 if (
                     piece_next_to_the_pawn.type() == PAWN
                     and piece_next_to_the_pawn.player() != moved_piece.player()
                     and piece_next_to_the_pawn.is_en_passantable()
                 ):
-                    new_board[moved_piece.row()][move.end_column] = None
-                new_board[move.end_row][move.end_column] = ChessPiece(
+                    new_board[moved_piece.row()][move.end_column()] = None
+                new_board[move.end_row()][move.end_column()] = ChessPiece(
                     PAWN,
-                    move.end_column,
-                    move.end_row,
+                    move.end_column(),
+                    move.end_row(),
                     moved_piece.player(),
                     False,
                     False,
                 )
 
             else:
-                new_board[move.end_row][move.end_column] = ChessPiece(
+                new_board[move.end_row()][move.end_column()] = ChessPiece(
                     PAWN,
-                    move.end_column,
-                    move.end_row,
+                    move.end_column(),
+                    move.end_row(),
                     moved_piece.player(),
                     False,
                     False,
                 )
 
         elif moved_piece.type() in (ROOK, KING):
-            new_board[move.end_row][move.end_column] = ChessPiece(
+            new_board[move.end_row()][move.end_column()] = ChessPiece(
                 moved_piece.type(),
-                move.end_column,
-                move.end_row,
+                move.end_column(),
+                move.end_row(),
                 moved_piece.player(),
                 False,
             )
 
         else:
-            new_board[move.end_row][move.end_column] = ChessPiece(
+            new_board[move.end_row()][move.end_column()] = ChessPiece(
                 moved_piece.type(),
-                move.end_column,
-                move.end_row,
+                move.end_column(),
+                move.end_row(),
                 moved_piece.player(),
             )
 
         if moved_piece.type() == KING:
             possible_end_positions_other_player = [
-                (enemy_move.end_column, enemy_move.end_row)
+                (enemy_move.end_column(), enemy_move.end_row())
                 for enemy_move in ChessState(
                     self._other_player,
                     self._current_player,
@@ -585,7 +603,7 @@ class ChessState(State):
             new_state_current_player_king.row(),
         )
         new_state_moves_end_positions = [
-            (new_move.end_column, new_move.end_row)
+            (new_move.end_column(), new_move.end_row())
             for new_move in new_state.get_moves()
         ]
         if new_state_current_player_king_pos in new_state_moves_end_positions:
