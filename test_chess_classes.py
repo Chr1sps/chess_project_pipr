@@ -42,6 +42,15 @@ def test_chess_piece_init_in_bounds():
     assert chess_piece.type() == PAWN
 
 
+def test_chess_piece_init_additional_args_not_needed():
+    player_1 = Player("1")
+    chess_piece = ChessPiece(BISHOP, 1, 1, player_1, False, False)
+    assert chess_piece.column() == 1
+    assert chess_piece.row() == 1
+    assert chess_piece.player() == player_1
+    assert chess_piece.type() == BISHOP
+
+
 def test_chess_piece_init_out_of_bounds():
     player_1 = Player("1")
     with raises(CoordinatesOutOfBoundsException):
