@@ -5,6 +5,7 @@ from chess_classes import (
     ROOK,
     QUEEN,
     KING,
+    ChessGame,
     CoordinatesOutOfBoundsException,
     IncorrectPieceTypeException,
     ChessPiece,
@@ -13,7 +14,7 @@ from chess_classes import (
     InvalidMoveException,
 )
 from typing import Iterable
-from two_player_games.player import Player
+from two_player_games.two_player_games.player import Player
 from pytest import raises
 
 
@@ -1179,6 +1180,57 @@ K1                      \n"
     )
 
 
+def test_make_move_pawn_promotion():
+    player_1 = Player("1")
+    player_2 = Player("2")
+    pawn = ChessPiece(PAWN, 3, 6, player_1, False)
+    king_w = ChessPiece(KING, 0, 0, player_1, False)
+    king_b = ChessPiece(KING, 0, 7, player_2, False)
+    board = (
+        [[king_w if column == 0 else None for column in range(8)]]
+        + [[None for _ in range(8)] for _ in range(5)]
+        + [[pawn if column == 3 else None for column in range(8)]]
+        + [[king_b if column == 0 else None for column in range(8)]]
+    )
+    chess_state = ChessState(player_1, player_2, player_1, board)
+    move = ChessMove(3, 6, 3, 7)
+    assert chess_state.is_promotion(move)
+    new_state = chess_state.make_move(move, QUEEN)
+    assert (
+        str(new_state)
+        == "\
+K2       Q1             \n\
+                        \n\
+                        \n\
+                        \n\
+                        \n\
+                        \n\
+                        \n\
+K1                      \n"
+    )
+
+
+def test_make_move_pawn_promotion_cant_move_check():
+    player_1 = Player("1")
+    player_2 = Player("2")
+    pawn = ChessPiece(PAWN, 3, 6, player_1, False)
+    king_w = ChessPiece(KING, 0, 0, player_1, False)
+    king_b = ChessPiece(KING, 0, 7, player_2, False)
+    rook_b = ChessPiece(ROOK, 0, 1, player_2, False)
+    board = (
+        [[king_w if column == 0 else None for column in range(8)]]
+        + [[rook_b if column == 0 else None for column in range(8)]]
+        + [[None for _ in range(8)] for _ in range(4)]
+        + [[pawn if column == 3 else None for column in range(8)]]
+        + [[king_b if column == 0 else None for column in range(8)]]
+    )
+    chess_state = ChessState(player_1, player_2, player_1, board)
+    move = ChessMove(3, 6, 3, 7)
+    assert chess_state.is_promotion(move)
+    with raises(InvalidMoveException):
+        chess_state.make_move(move, QUEEN)
+
+
 def test_make_move_cant_castle_under_check():
     player_1 = Player("1")
     player_2 = Player("2")
@@ -1415,6 +1467,40 @@ def test_make_move_cant_castle_queenside_under_check():
     move = ChessMove(4, 0, 2, 0)
     with raises(InvalidMoveException):
         state.make_move(move)
+
+
+def test_is_promotion():
+    player_1 = Player("1")
+    player_2 = Player("2")
+    board = (
+        [[None for _ in range(8)] for _ in range(5)]
+        + [
+            [
+                ChessPiece(PAWN, column, 5, player_1, False, False)
+                if not (column // 4)
+                else None
+                for column in range(8)
+            ]
+        ]
+        + [
+            [
+                ChessPiece(PAWN, column, 6, player_1, False, False)
+                if column // 4
+                else None
+                for column in range(8)
+            ]
+        ]
+        + [[None for _ in range(8)]]
+    )
+    chess_state = ChessState(player_1, player_2, player_1, board)
+    assert all(
+        not chess_state.is_promotion(ChessMove(column, 5, column, 6))
+        for column in range(4)
+    )
+    assert all(
+        chess_state.is_promotion(ChessMove(column, 6, column, 7))
+        for column in range(4, 8)
+    )
 
 
 def test_is_finished_init_empty():

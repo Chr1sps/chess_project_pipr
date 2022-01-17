@@ -505,10 +505,25 @@ class ChessState(State):
         return new_board
 
     def _evaluate_pawn_scenarios(
-        self, move: ChessMove, moved_piece: ChessPiece
+        self,
+        move: ChessMove,
+        moved_piece: ChessPiece,
+        promotion_type: int = None,
     ) -> List[List[ChessPiece]]:
         row_shift = move.end_row() - move.start_row()
         column_shift = move.end_column() - move.start_column()
+
+        if self.is_promotion(move):
+            if promotion_type in range(1, 5):
+                moved_piece = ChessPiece(
+                    promotion_type,
+                    moved_piece.column(),
+                    moved_piece.row(),
+                    moved_piece.player(),
+                    False,
+                )
+            else:
+                raise IncorrectPieceTypeException
 
         # first move
         if row_shift in (-2, 2):
@@ -529,7 +544,8 @@ class ChessState(State):
                 moved_piece,
             )
             if (
-                piece_next_to_the_pawn.type() == PAWN
+                piece_next_to_the_pawn is not None
+                and piece_next_to_the_pawn.type() == PAWN
                 and piece_next_to_the_pawn.player() != moved_piece.player()
                 and piece_next_to_the_pawn.is_en_passantable()
             ):
@@ -607,14 +623,18 @@ class ChessState(State):
 
         return new_board
 
-    def make_move(self, move: ChessMove) -> "ChessState":
+    def make_move(
+        self, move: ChessMove, promotion_type: int = None
+    ) -> "ChessState":
         moved_piece = self._board[move.start_row()][move.start_column()]
         valid_moves = self.get_moves()
         if move not in valid_moves:
             raise InvalidMoveException
 
         if moved_piece.type() == PAWN:
-            new_board = self._evaluate_pawn_scenarios(move, moved_piece)
+            new_board = self._evaluate_pawn_scenarios(
+                move, moved_piece, promotion_type
+            )
 
         else:
             new_board = self._piece_shift(
@@ -642,6 +662,17 @@ class ChessState(State):
             raise InvalidMoveException
 
         return new_state
+
+    def is_promotion(self, move: ChessMove) -> bool:
+        moved_piece = self._board[move.start_row()][move.start_column()]
+        if (
+            moved_piece is not None
+            and moved_piece.type() == PAWN
+            and move.end_row()
+            == (7 if moved_piece.player() == self._white else 0)
+        ):
+            return True
+        return False
 
     def is_finished(self) -> bool:
         get_moves_list = self.get_moves()
@@ -689,3 +720,9 @@ class ChessGame(Game):
         state = ChessState(self._first_player, self._second_player)
 
         super().__init__(state)
+
+    def is_promotion(self, move: ChessMove) -> bool:
+        return self.state.is_promotion(move)
+
+    def make_move(self, move: ChessMove, promotion_type: int = None):
+        self.state = self.state.make_move(move, promotion_type)
