@@ -1,4 +1,4 @@
-from typing import Iterable, List, Optional
+from typing import Iterable, List, Optional, Tuple
 from two_player_games.two_player_games.game import Game
 from two_player_games.two_player_games.state import State
 from two_player_games.two_player_games.player import Player
@@ -65,6 +65,59 @@ class ChessPiece:
 
     def player(self) -> Player:
         return self._player
+
+    def _get_moves_lines(
+        self, state: ChessState, directions: Iterable[Tuple[int, int]]
+    ) -> Iterable[ChessMove]:
+        result = []
+        for direction in directions:
+            dir_column, dir_row = direction
+            for distance in range(1, 8):
+                new_column = self.column() + distance * dir_column
+                new_row = self.row() + distance * dir_row
+                if new_column not in range(8) or new_row not in range(8):
+                    continue
+                possible_square = state._board[new_row][new_column]
+                if not (
+                    possible_square is not None
+                    and possible_square.player() == self.player()
+                ):
+                    result.append(
+                        ChessMove(
+                            self.column(),
+                            self.row(),
+                            new_column,
+                            new_row,
+                        )
+                    )
+                if possible_square is not None:
+                    break
+        return result
+
+    def _get_moves_shifts(
+        self, state: ChessState, shifts: Iterable[Tuple[int, int]]
+    ) -> Iterable[ChessMove]:
+        result = []
+        for position in shifts:
+            new_column, new_row = position
+            new_column += self.column()
+            new_row += self.row()
+            if new_column not in range(8) or new_row not in range(8):
+                continue
+            possible_square = state._board[new_row][new_column]
+            if not (
+                possible_square is not None
+                and possible_square.player() == self.player()
+            ):
+                result.append(
+                    ChessMove(
+                        self.column(),
+                        self.row(),
+                        new_column,
+                        new_row,
+                    )
+                )
+        return result
 
     def _get_moves(self, state: ChessState) -> Iterable[ChessMove]:
         pass
@@ -230,30 +283,7 @@ class Bishop(ChessPiece):
         return f"B{self._player.char}"
 
     def _get_moves(self, state: ChessState) -> Iterable[ChessMove]:
-        result = []
-        for direction in product((-1, 1), (-1, 1)):
-            dir_column, dir_row = direction
-            for distance in range(1, 8):
-                new_column = self.column() + distance * dir_column
-                new_row = self.row() + distance * dir_row
-                if new_column not in range(8) or new_row not in range(8):
-                    break
-                possible_square = state._board[new_row][new_column]
-                if not (
-                    possible_square is not None
-                    and possible_square.player() == self.player()
-                ):
-                    result.append(
-                        ChessMove(
-                            self.column(),
-                            self.row(),
-                            new_column,
-                            new_row,
-                        )
-                    )
-                if possible_square is not None:
-                    break
-        return result
+        return self._get_moves_lines(product((-1, 1), (-1, 1)))
 
 
 class Rook(ChessPiece):
@@ -275,31 +305,8 @@ class Rook(ChessPiece):
         return f"R{self._player.char}"
 
     def _get_moves(self, state: ChessState) -> Iterable[ChessMove]:
-        result = []
         directions = ((1, 0), (0, 1), (-1, 0), (0, -1))
-        for direction in directions:
-            dir_column, dir_row = direction
-            for distance in range(1, 8):
-                new_column = self.column() + distance * dir_column
-                new_row = self.row() + distance * dir_row
-                if new_column not in range(8) or new_row not in range(8):
-                    continue
-                possible_square = state._board[new_row][new_column]
-                if not (
-                    possible_square is not None
-                    and possible_square.player() == self.player()
-                ):
-                    result.append(
-                        ChessMove(
-                            self.column(),
-                            self.row(),
-                            new_column,
-                            new_row,
-                        )
-                    )
-                if possible_square is not None:
-                    break
-        return result
+        return self._get_moves_lines(directions)
 
 
 class Queen(ChessPiece):
@@ -307,32 +314,9 @@ class Queen(ChessPiece):
         return f"Q{self._player.char}"
 
     def _get_moves(self, state: ChessState) -> Iterable[ChessMove]:
-        result = []
         directions = list(product((1, 0, -1), (1, 0, -1)))
         directions.remove((0, 0))
-        for direction in directions:
-            dir_column, dir_row = direction
-            for distance in range(1, 8):
-                new_column = self.column() + distance * dir_column
-                new_row = self.row() + distance * dir_row
-                if new_column not in range(8) or new_row not in range(8):
-                    continue
-                possible_square = state._board[new_row][new_column]
-                if not (
-                    possible_square is not None
-                    and possible_square.player() == self.player()
-                ):
-                    result.append(
-                        ChessMove(
-                            self.column(),
-                            self.row(),
-                            new_column,
-                            new_row,
-                        )
-                    )
-                if possible_square is not None:
-                    break
-        return result
+        return self._get_moves_lines(directions)
 
 
 class King(ChessPiece):
@@ -355,27 +339,9 @@ class King(ChessPiece):
 
     def _get_moves(self, state: ChessState) -> Iterable[ChessMove]:
 
-        result = []
         possible_shifts = list(product((1, 0, -1), (1, 0, -1)))
         possible_shifts.remove((0, 0))
-
-        for shift in possible_shifts:
-
-            new_column, new_row = shift
-            new_column += self.column()
-            new_row += self.row()
-
-            if new_column not in range(8) or new_row not in range(8):
-                continue
-
-            possible_square = state._board[new_row][new_column]
-            if not (
-                possible_square is not None
-                and possible_square.player() == self.player()
-            ):
-                result.append(
-                    ChessMove(self.column(), self.row(), new_column, new_row)
-                )
+        result = self._get_moves_shifts(possible_shifts)
 
         if self.column() == 4 and self.can_castle():
 

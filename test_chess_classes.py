@@ -1,7 +1,6 @@
 from chess_classes import (
     Bishop,
     CoordinatesOutOfBoundsException,
-    IncorrectPieceTypeException,
     ChessMove,
     ChessState,
     InvalidMoveException,
