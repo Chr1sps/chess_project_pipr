@@ -252,30 +252,10 @@ class Knight(ChessPiece):
         return f"N{self._player.char}"
 
     def _get_moves(self, state: ChessState) -> Iterable[ChessMove]:
-        result = []
         possible_shifts = list(product((-2, 2), (-1, 1))) + list(
             product((-1, 1), (-2, 2))
         )
-        for position in possible_shifts:
-            new_column, new_row = position
-            new_column += self.column()
-            new_row += self.row()
-            if new_column not in range(8) or new_row not in range(8):
-                continue
-            possible_square = state._board[new_row][new_column]
-            if not (
-                possible_square is not None
-                and possible_square.player() == self.player()
-            ):
-                result.append(
-                    ChessMove(
-                        self.column(),
-                        self.row(),
-                        new_column,
-                        new_row,
-                    )
-                )
-        return result
+        return self._get_moves_shifts(state, possible_shifts)
 
 
 class Bishop(ChessPiece):
@@ -283,7 +263,7 @@ class Bishop(ChessPiece):
         return f"B{self._player.char}"
 
     def _get_moves(self, state: ChessState) -> Iterable[ChessMove]:
-        return self._get_moves_lines(product((-1, 1), (-1, 1)))
+        return self._get_moves_lines(state, product((-1, 1), (-1, 1)))
 
 
 class Rook(ChessPiece):
@@ -306,7 +286,7 @@ class Rook(ChessPiece):
 
     def _get_moves(self, state: ChessState) -> Iterable[ChessMove]:
         directions = ((1, 0), (0, 1), (-1, 0), (0, -1))
-        return self._get_moves_lines(directions)
+        return self._get_moves_lines(state, directions)
 
 
 class Queen(ChessPiece):
@@ -316,7 +296,7 @@ class Queen(ChessPiece):
     def _get_moves(self, state: ChessState) -> Iterable[ChessMove]:
         directions = list(product((1, 0, -1), (1, 0, -1)))
         directions.remove((0, 0))
-        return self._get_moves_lines(directions)
+        return self._get_moves_lines(state, directions)
 
 
 class King(ChessPiece):
@@ -341,7 +321,7 @@ class King(ChessPiece):
 
         possible_shifts = list(product((1, 0, -1), (1, 0, -1)))
         possible_shifts.remove((0, 0))
-        result = self._get_moves_shifts(possible_shifts)
+        result = self._get_moves_shifts(state, possible_shifts)
 
         if self.column() == 4 and self.can_castle():
 

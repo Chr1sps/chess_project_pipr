@@ -1,11 +1,12 @@
 from typing import Iterable, Optional
 
-from two_player_games.move import Move
-from two_player_games.player import Player
+from two_player_games.two_player_games.move import Move
+from two_player_games.two_player_games.player import Player
 
 
 class State:
     """Immutable game state object"""
+
     def get_moves(self) -> Iterable[Move]:
         """
         Returns:
@@ -20,7 +21,7 @@ class State:
         """
         raise NotImplementedError
 
-    def make_move(self, move: Move) -> 'State':
+    def make_move(self, move: Move) -> "State":
         """
         Creates a new state after making the move
 
