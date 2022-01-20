@@ -73,19 +73,19 @@ class ChessPiece:
         for direction in directions:
             dir_column, dir_row = direction
             for distance in range(1, 8):
-                new_column = self.column() + distance * dir_column
-                new_row = self.row() + distance * dir_row
+                new_column = self._column + distance * dir_column
+                new_row = self._row + distance * dir_row
                 if new_column not in range(8) or new_row not in range(8):
                     continue
                 possible_square = state._board[new_row][new_column]
                 if not (
                     possible_square is not None
-                    and possible_square.player() == self.player()
+                    and possible_square.player() == self._player
                 ):
                     result.append(
                         ChessMove(
-                            self.column(),
-                            self.row(),
+                            self._column,
+                            self._row,
                             new_column,
                             new_row,
                         )
@@ -100,19 +100,19 @@ class ChessPiece:
         result = []
         for position in shifts:
             new_column, new_row = position
-            new_column += self.column()
-            new_row += self.row()
+            new_column += self._column
+            new_row += self._row
             if new_column not in range(8) or new_row not in range(8):
                 continue
             possible_square = state._board[new_row][new_column]
             if not (
                 possible_square is not None
-                and possible_square.player() == self.player()
+                and possible_square.player() == self._player
             ):
                 result.append(
                     ChessMove(
-                        self.column(),
-                        self.row(),
+                        self._column,
+                        self._row,
                         new_column,
                         new_row,
                     )
@@ -155,92 +155,92 @@ class Pawn(ChessPiece):
 
     def _get_moves(self, state: ChessState) -> Iterable[ChessMove]:
         result = []
-        row_shift = 1 if self.player() == state._white else -1
-        right_column = self.column() + 1
-        left_column = self.column() - 1
+        row_shift = 1 if self._player == state._white else -1
+        right_column = self._column + 1
+        left_column = self._column - 1
 
-        if state._board[self.row() + row_shift][self.column()] is None:
+        if state._board[self._row + row_shift][self._column] is None:
             result.append(
                 ChessMove(
-                    self.column(),
-                    self.row(),
-                    self.column(),
-                    self.row() + row_shift,
+                    self._column,
+                    self._row,
+                    self._column,
+                    self._row + row_shift,
                 )
             )
         if (
             self._first_move
-            and state._board[self.row() + 2 * row_shift][self.column()] is None
+            and state._board[self._row + 2 * row_shift][self._column] is None
         ):
             result.append(
                 ChessMove(
-                    self.column(),
-                    self.row(),
-                    self.column(),
-                    self.row() + 2 * row_shift,
+                    self._column,
+                    self._row,
+                    self._column,
+                    self._row + 2 * row_shift,
                 )
             )
         if right_column in range(8):
-            right_diagonal = state._board[self.row() + row_shift][right_column]
+            right_diagonal = state._board[self._row + row_shift][right_column]
             if (
                 right_diagonal is not None
-                and right_diagonal.player() != self.player()
+                and right_diagonal.player() != self._player
             ):
                 result.append(
                     ChessMove(
-                        self.column(),
-                        self.row(),
+                        self._column,
+                        self._row,
                         right_column,
-                        self.row() + row_shift,
+                        self._row + row_shift,
                     )
                 )
 
-            right_square = state._board[self.row()][right_column]
+            right_square = state._board[self._row][right_column]
             if (
                 right_square is not None
                 and type(right_square) == Pawn
-                and right_square.player() != self.player()
+                and right_square.player() != self._player
                 and right_square.is_en_passantable
                 and right_diagonal is None
             ):
                 result.append(
                     ChessMove(
-                        self.column(),
-                        self.row(),
+                        self._column,
+                        self._row,
                         right_column,
-                        self.row() + row_shift,
+                        self._row + row_shift,
                     )
                 )
 
         if left_column in range(8):
-            left_diagonal = state._board[self.row() + row_shift][left_column]
+            left_diagonal = state._board[self._row + row_shift][left_column]
             if (
                 left_diagonal is not None
-                and left_diagonal.player() != self.player()
+                and left_diagonal.player() != self._player
             ):
                 result.append(
                     ChessMove(
-                        self.column(),
-                        self.row(),
+                        self._column,
+                        self._row,
                         left_column,
-                        self.row() + row_shift,
+                        self._row + row_shift,
                     )
                 )
 
-            left_square = state._board[self.row()][left_column]
+            left_square = state._board[self._row][left_column]
             if (
                 left_square is not None
                 and type(left_square) == Pawn
-                and left_square.player() != self.player()
+                and left_square.player() != self._player
                 and left_square.is_en_passantable
                 and left_diagonal is None
             ):
                 result.append(
                     ChessMove(
-                        self.column(),
-                        self.row(),
+                        self._column,
+                        self._row,
                         left_column,
-                        self.row() + row_shift,
+                        self._row + row_shift,
                     )
                 )
 
@@ -323,37 +323,33 @@ class King(ChessPiece):
         possible_shifts.remove((0, 0))
         result = self._get_moves_shifts(state, possible_shifts)
 
-        if self.column() == 4 and self.can_castle():
+        if self._column == 4 and self._can_castle:
 
-            left_corner = state._board[self.row()][0]
+            left_corner = state._board[self._row][0]
             if (
                 left_corner
                 and type(left_corner) == Rook
-                and left_corner.player() == self.player()
+                and left_corner.player() == self._player
                 and left_corner.can_castle()
                 and all(
-                    state._board[self.row()][column] is None
+                    state._board[self._row][column] is None
                     for column in range(1, 4)
                 )
             ):
-                result.append(
-                    ChessMove(self.column(), self.row(), 2, self.row())
-                )
+                result.append(ChessMove(self._column, self._row, 2, self._row))
 
-            right_corner = state._board[self.row()][7]
+            right_corner = state._board[self._row][7]
             if (
                 right_corner
                 and type(right_corner) == Rook
-                and right_corner.player() == self.player()
+                and right_corner.player() == self._player
                 and right_corner.can_castle()
                 and all(
-                    state._board[self.row()][column] is None
+                    state._board[self._row][column] is None
                     for column in range(5, 7)
                 )
             ):
-                result.append(
-                    ChessMove(self.column(), self.row(), 6, self.row())
-                )
+                result.append(ChessMove(self._column, self._row, 6, self._row))
 
         return result
 
