@@ -484,7 +484,7 @@ class ChessState(State):
         player: Player,
         first_move_or_can_castle=False,
         is_en_passantable=False,
-    ):
+    ) -> ChessPiece:
         if piece_type == Pawn:
             return Pawn(
                 column,
@@ -562,17 +562,30 @@ class ChessState(State):
             piece_next_to_the_pawn = self._board[moved_piece.row()][
                 move.end_column()
             ]
-            new_board = self._piece_shift(
-                move,
-                moved_piece,
-            )
+            piece_pawn_end_position = self._board[move.end_row()][
+                move.end_column()
+            ]
             if (
                 piece_next_to_the_pawn is not None
                 and type(piece_next_to_the_pawn) == Pawn
                 and piece_next_to_the_pawn.player() != moved_piece.player()
                 and piece_next_to_the_pawn.is_en_passantable()
             ):
+                new_board = self._piece_shift(
+                    move,
+                    moved_piece,
+                )
                 new_board[moved_piece.row()][move.end_column()] = None
+            elif (
+                piece_pawn_end_position is not None
+                and piece_pawn_end_position.player() == self._other_player
+            ):
+                new_board = self._piece_shift(
+                    move,
+                    moved_piece,
+                )
+            else:
+                raise InvalidMoveException
 
         else:  # move forward by one square
             new_board = self._piece_shift(
@@ -646,9 +659,24 @@ class ChessState(State):
 
         return new_board
 
+    def _reset_en_passantable_pawns(self):
+        row = 3 if self._current_player == self._white else 4
+        for piece in self._board[row]:
+            if (
+                piece is not None
+                and type(piece) == Pawn
+                and piece.player() == self._current_player
+                and piece.is_en_passantable()
+            ):
+                self._board[row][piece.column()] = Pawn(
+                    piece.column(), row, self._current_player, False, False
+                )
+
     def make_move(
         self, move: ChessMove, promotion_type: type = None
     ) -> "ChessState":
+        self._reset_en_passantable_pawns()
+
         moved_piece = self._board[move.start_row()][move.start_column()]
         valid_moves = self.get_moves()
         if move not in valid_moves:

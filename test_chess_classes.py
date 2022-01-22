@@ -1181,6 +1181,47 @@ K1                      \n"
     )
 
 
+def test_make_move_cant_en_passant_isnt_right_after_first_move():
+    player_1 = Player("1")
+    player_2 = Player("2")
+    board = (
+        [
+            [
+                King(0, 0, player_1, False) if column == 0 else None
+                for column in range(8)
+            ]
+        ]
+        + [[None for _ in range(8)] for _ in range(3)]
+        + [
+            [
+                None,
+                None,
+                None,
+                Pawn(3, 4, player_2, False, True),
+                Pawn(4, 4, player_1, False, False),
+                None,
+                None,
+                None,
+            ]
+        ]
+        + [[None for _ in range(8)] for _ in range(2)]
+        + [
+            [
+                King(0, 7, player_2, False) if column == 0 else None
+                for column in range(8)
+            ]
+        ]
+    )
+    chess_state = ChessState(player_1, player_2, player_1, board)
+    move = ChessMove(0, 0, 1, 0)
+    move_2 = ChessMove(0, 7, 1, 7)
+    move_3 = ChessMove(4, 4, 3, 5)
+    new_state = chess_state.make_move(move)
+    new_state = new_state.make_move(move_2)
+    with raises(InvalidMoveException):
+        new_state.make_move(move_3)
+
+
 def test_make_move_pawn_promotion():
     player_1 = Player("1")
     player_2 = Player("2")
