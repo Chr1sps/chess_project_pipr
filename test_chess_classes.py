@@ -1,15 +1,10 @@
-from chess_classes import (
-    Bishop,
+from chess_exceptions import (
     CoordinatesOutOfBoundsException,
-    ChessMove,
-    ChessState,
     InvalidMoveException,
-    King,
-    Knight,
-    Pawn,
-    Queen,
-    Rook,
 )
+from chess_move import ChessMove
+from chess_pieces import Pawn, Knight, Bishop, Rook, Queen, King
+from chess_state import ChessState
 from typing import Iterable
 from two_player_games.two_player_games.player import Player
 from pytest import raises
