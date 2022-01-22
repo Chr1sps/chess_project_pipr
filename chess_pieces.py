@@ -6,16 +6,54 @@ from chess_move import ChessMove
 
 
 class ChessState:
+    """ChessState class definition for typehints."""
+
     pass
 
 
 class ChessPiece:
+    """
+    A class that represents a chess piece. Provides attributes and methods for
+    child classes. Shouldn't be called explicitly.
+
+
+    Attributes:
+
+    _column : int
+        an integer representing the column of a square that the piece
+        resides on
+
+    _row : int
+        an integer representing the row of a square that the piece resides on
+
+    _player : Player
+        a Player object representing a player to which the piece belongs
+    """
+
     def __init__(
         self,
         column: int,
         row: int,
         player: Player,
     ):
+        """
+        Constructor of the ChessPiece class. Function checks if the column and
+        row arguments are within the range of available coordinates.
+
+
+        Parameters:
+
+        column : int
+            an integer representing the column of a square that the piece
+            resides on
+
+        row : int
+            an integer representing the row of a square that the piece
+            resides on
+
+        player : Player
+            a Player object representing a player to which the piece belongs
+        """
 
         if row in range(8) and column in range(8):
             self._row = row
@@ -25,30 +63,45 @@ class ChessPiece:
 
         self._player = player
 
-    def set_row(self, row: int):
-        if row in list(range(8)):
-            self._row = row
-        else:
-            raise CoordinatesOutOfBoundsException
-
-    def set_column(self, column: int):
-        if column in list(range(8)):
-            self._column = column
-        else:
-            raise CoordinatesOutOfBoundsException
-
     def column(self) -> int:
+        """Returns an integer representing the column of a square that the
+        piece resides on."""
         return self._column
 
     def row(self) -> int:
+        """Returns an integer representing the row of a square that the piece
+        resides on."""
         return self._row
 
     def player(self) -> Player:
+        """Returns a Player object representing the player that the piece
+        belongs to."""
         return self._player
 
     def _get_moves_lines(
         self, state: ChessState, directions: Iterable[Tuple[int, int]]
     ) -> Iterable[ChessMove]:
+        """
+        Returns a list of all possible moves that a piece moving in a line
+        would be able to make. This function ONLY takes into consideration
+        how a piece moves physically (ie. if it's blocked by other pieces,
+        if it can take other pieces and if it's within the board).
+
+
+        Parameters:
+
+        state : ChessState
+            a ChessState object representing the current state of the game
+            (the situation on the board, the current player, etc. (more
+            info in the ChessState class docs in the chess_state.py file))
+
+        directions : Iterable[Tuple[int]]
+            a list containing tuples indicating directions of each of the
+            lines. These tuples are of the form (int, int), where both of
+            these integers belong to {-1, 0, 1} and both of the values
+            aren't equal to 0 simultaneously (eg. (0, 1), (-1, 1)). These
+            values correspond to the column and row direction respectively
+        """
         result = []
         for direction in directions:
             dir_column, dir_row = direction
@@ -77,6 +130,28 @@ class ChessPiece:
     def _get_moves_shifts(
         self, state: ChessState, shifts: Iterable[Tuple[int, int]]
     ) -> Iterable[ChessMove]:
+        """
+        Returns a list of all possible moves that a piece would be able
+        to make given all the possible shifts it is able to make. This
+        function ONLY takes into consideration how a piece moves physically
+        (ie. if it's blocked by other pieces, if it can take other pieces
+        and if it's within the board).
+
+
+        Parameters:
+
+        state : ChessState
+            a ChessState object representing the current state of the game
+            (the situation on the board, the current player, etc. (more
+            info in the ChessState class docs in the chess_state.py file))
+
+        directions : Iterable[Tuple[int]]
+            a list containing tuples indicating all the possible shifts that
+            a piece can make. These tuples are of the form (int, int),
+            where both of these numbers aren't equal to (eg. (0, 2),
+            (-1, 3)). These values correspond to the column and row shift
+            respectively
+        """
         result = []
         for position in shifts:
             new_column, new_row = position
@@ -100,17 +175,45 @@ class ChessPiece:
         return result
 
     def _get_moves(self, state: ChessState) -> Iterable[ChessMove]:
+        """_get_moves method definition for child classes."""
         pass
 
     def __repr__(self) -> str:
+        """Returns object info for debugging (piece type, position)."""
         return f"{type(self).__name__} at \
 {chr(self._column + ord('a'))}{self._row + 1}"
 
     def __str__(self) -> str:
+        """__str__ magic method definition for child classes."""
         pass
 
 
 class Pawn(ChessPiece):
+    """
+    A class that represents a pawn.
+
+
+    Attributes:
+
+    _column : int
+        an integer representing the column of a square that the pawn
+        resides on
+
+    _row : int
+        an integer representing the row of a square that the pawn
+        resides on
+
+    _player : Player
+        a Player object representing a player to which the pawn belongs
+
+    _first_move : bool
+        a bool that determines if the pawn has the possibility of making
+        a move by two squares forward (as its first move)
+
+    _is_en_passantable : bool
+        a bool that determines if a pawn can be taken en passant
+    """
+
     def __init__(
         self,
         column: int,
@@ -119,21 +222,63 @@ class Pawn(ChessPiece):
         first_move: bool = True,
         is_en_passantable: bool = False,
     ):
+        """
+        Constructor of the Pawn class. Function checks if the column and
+        row arguments are within the range of available coordinates.
 
+
+        Parameters:
+
+        column : int
+            an integer representing the column of a square that the pawn
+            resides on
+
+        row : int
+            an integer representing the row of a square that the pawn
+            resides on
+
+        player : Player
+            a Player object representing a player to which the piece belongs
+
+        first_move : bool
+            a bool that determines if the pawn has the possibility of making
+            a move by two squares forward (as its first move)
+
+        is_en_passantable : bool
+            a bool that determines if a pawn can be taken en passant
+        """
         super().__init__(column, row, player)
         self._first_move = first_move
         self._is_en_passantable = is_en_passantable
 
     def is_en_passantable(self) -> bool:
+        """Returns a bool determining if a pawn can be taken en passant."""
         return self._is_en_passantable
 
     def first_move(self) -> bool:
+        """Returns a bool determining if a pawn can make it's first move."""
         return self._first_move
 
     def __str__(self) -> str:
+        """Returns a string representing a pawn. Used in the __str__ function
+        of the ChessState class. Indicates the pawn's player."""
         return f"P{self._player.char}"
 
     def _get_moves(self, state: ChessState) -> Iterable[ChessMove]:
+        """
+        Returns a list of all possible moves that a pawn would be able
+        to make. This function ONLY takes into consideration how a
+        piece moves physically ((ie. if it's blocked by other pieces,
+        if it can take other pieces and if it's within the board).
+
+
+        Parameters:
+
+        state : ChessState
+            a ChessState object representing the current state of the game
+            (the situation on the board, the current player, etc. (more
+            info in the ChessState class docs in the chess_state.py file))
+        """
         result = []
         row_shift = 1 if self._player == state._white else -1
         right_column = self._column + 1
@@ -229,9 +374,26 @@ class Pawn(ChessPiece):
 
 class Knight(ChessPiece):
     def __str__(self) -> str:
+        """Returns a string representing a knight. Used in the __str__ function
+        of the ChessState class. Indicates the knight's player."""
         return f"N{self._player.char}"
 
     def _get_moves(self, state: ChessState) -> Iterable[ChessMove]:
+        """
+        Returns a list of all possible moves that a bishop would be
+        able to make. This function ONLY takes into consideration how a
+        knight moves physically ((ie. if it's blocked by other pieces,
+        if it can take other pieces and if it's within the board).
+
+
+        Parameters:
+
+        state : ChessState
+            a ChessState object representing the current state of the game
+            (the situation on the board, the current player, etc. (more
+            info in the ChessState class docs in the chess_state.py file))
+        """
+
         possible_shifts = list(product((-2, 2), (-1, 1))) + list(
             product((-1, 1), (-2, 2))
         )
@@ -240,13 +402,50 @@ class Knight(ChessPiece):
 
 class Bishop(ChessPiece):
     def __str__(self) -> str:
+        """Returns a string representing a bishop. Used in the __str__ function
+        of the ChessState class. Indicates the bishop's player."""
         return f"B{self._player.char}"
 
     def _get_moves(self, state: ChessState) -> Iterable[ChessMove]:
+        """
+        Returns a list of all possible moves that a bishop would be
+        able to make. This function ONLY takes into consideration how a
+        bishop moves physically ((ie. if it's blocked by other pieces,
+        if it can take other pieces and if it's within the board).
+
+
+        Parameters:
+
+        state : ChessState
+            a ChessState object representing the current state of the game
+            (the situation on the board, the current player, etc. (more
+            info in the ChessState class docs in the chess_state.py file))
+        """
         return self._get_moves_lines(state, product((-1, 1), (-1, 1)))
 
 
 class Rook(ChessPiece):
+    """
+    A class that represents a rook.
+
+
+    Atributes:
+
+    _column : int
+        an integer representing the column of a square that the rook
+        resides on
+
+    _row : int
+        an integer representing the row of a square that the rook
+        resides on
+
+    _player : Player
+        a Player object representing a player to which the rook belongs
+
+    _can_castle : bool
+        a bool that determines if the rook has the possibility of castling
+    """
+
     def __init__(
         self,
         column: int,
@@ -254,32 +453,108 @@ class Rook(ChessPiece):
         player: Player,
         can_castle: bool = True,
     ):
+        """
+        Constructor of the Rook class. Function checks if the column and
+        row arguments are within the range of available coordinates.
 
+
+        Parameters:
+
+        column : int
+            an integer representing the column of a square that the rook
+            resides on
+
+        row : int
+            an integer representing the row of a square that the rook
+            resides on
+
+        player : Player
+            a Player object representing a player to which the rook belongs
+
+        can_castle : bool
+            a bool that determines if the rook has the possibility of castling
+        """
         super().__init__(column, row, player)
         self._can_castle = can_castle
 
     def can_castle(self):
+        """Returns a bool determining if the rook can castle."""
         return self._can_castle
 
     def __str__(self) -> str:
+        """Returns a string representing a rook. Used in the __str__ function
+        of the ChessState class. Indicates the rook's player."""
         return f"R{self._player.char}"
 
     def _get_moves(self, state: ChessState) -> Iterable[ChessMove]:
+        """
+        Returns a list of all possible moves that a rook would be
+        able to make. This function ONLY takes into consideration how a
+        rook moves physically ((ie. if it's blocked by other pieces,
+        if it can take other pieces and if it's within the board).
+
+
+        Parameters:
+
+        state : ChessState
+            a ChessState object representing the current state of the game
+            (the situation on the board, the current player, etc. (more
+            info in the ChessState class docs in the chess_state.py file))
+        """
+
         directions = ((1, 0), (0, 1), (-1, 0), (0, -1))
         return self._get_moves_lines(state, directions)
 
 
 class Queen(ChessPiece):
     def __str__(self) -> str:
+        """Returns a string representing a queen. Used in the __str__ function
+        of the ChessState class. Indicates the queen's player."""
         return f"Q{self._player.char}"
 
     def _get_moves(self, state: ChessState) -> Iterable[ChessMove]:
+        """
+        Returns a list of all possible moves that a queen would be
+        able to make. This function ONLY takes into consideration how a
+        queen moves physically ((ie. if it's blocked by other pieces,
+        if it can take other pieces and if it's within the board).
+
+
+        Parameters:
+
+        state : ChessState
+            a ChessState object representing the current state of the game
+            (the situation on the board, the current player, etc. (more
+            info in the ChessState class docs in the chess_state.py file))
+        """
+
         directions = list(product((1, 0, -1), (1, 0, -1)))
         directions.remove((0, 0))
         return self._get_moves_lines(state, directions)
 
 
 class King(ChessPiece):
+    """
+    A class that represents a king.
+
+
+    Atributes:
+
+    _column : int
+        an integer representing the column of a square that the king
+        resides on
+
+    _row : int
+        an integer representing the row of a square that the king
+        resides on
+
+    _player : Player
+        a Player object representing a player to which the king belongs
+
+    _can_castle : bool
+        a bool that determines if the king has the possibility of castling
+    """
+
     def __init__(
         self,
         column: int,
@@ -287,17 +562,55 @@ class King(ChessPiece):
         player: Player,
         can_castle: bool = True,
     ):
+        """
+        Constructor of the King class. Function checks if the column and
+        row arguments are within the range of available coordinates.
 
+
+        Parameters:
+
+        column : int
+            an integer representing the column of a square that the king
+            resides on
+
+        row : int
+            an integer representing the row of a square that the king
+            resides on
+
+        player : Player
+            a Player object representing a player to which the king belongs
+
+        can_castle : bool
+            a bool that determines if the king has the possibility of castling
+        """
         super().__init__(column, row, player)
         self._can_castle = can_castle
 
     def can_castle(self):
+        """Returns a bool determining if the king can castle."""
         return self._can_castle
 
     def __str__(self) -> str:
+        """Returns a string representing a king. Used in the __str__ function
+        of the ChessState class. Indicates the king's player."""
         return f"K{self._player.char}"
 
     def _get_moves(self, state: ChessState) -> Iterable[ChessMove]:
+        """
+        Returns a list of all possible moves that a king would be
+        able to make. This function ONLY takes into consideration how a
+        king moves physically ((ie. if it's blocked by other pieces,
+        if it can take other pieces and if it's within the board) and if
+        it can castle.
+
+
+        Parameters:
+
+        state : ChessState
+            a ChessState object representing the current state of the game
+            (the situation on the board, the current player, etc. (more
+            info in the ChessState class docs in the chess_state.py file))
+        """
 
         possible_shifts = list(product((1, 0, -1), (1, 0, -1)))
         possible_shifts.remove((0, 0))
