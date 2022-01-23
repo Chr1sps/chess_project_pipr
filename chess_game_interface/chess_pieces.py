@@ -1,8 +1,12 @@
-from chess_exceptions import CoordinatesOutOfBoundsException
-from two_player_games.two_player_games.player import Player
+from chess_game_interface.chess_exceptions import (
+    CoordinatesOutOfBoundsException,
+)
+from chess_game_interface.two_player_games.two_player_games.player import (
+    Player,
+)
 from typing import Iterable, Tuple
 from itertools import product
-from chess_move import ChessMove
+from chess_game_interface.chess_move import ChessMove
 
 
 class ChessState:

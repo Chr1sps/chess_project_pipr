@@ -1,7 +1,9 @@
 from typing import Iterable, Optional
-from two_player_games.two_player_games.move import Move
-from two_player_games.two_player_games.player import Player
-from two_player_games.two_player_games.state import State
+from chess_game_interface.two_player_games.two_player_games.move import Move
+from chess_game_interface.two_player_games.two_player_games.player import (
+    Player,
+)
+from chess_game_interface.two_player_games.two_player_games.state import State
 
 
 class Game:

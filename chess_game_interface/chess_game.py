@@ -1,7 +1,9 @@
-from two_player_games.two_player_games.game import Game
-from two_player_games.two_player_games.player import Player
-from chess_move import ChessMove
-from chess_state import ChessState
+from chess_game_interface.two_player_games.two_player_games.game import Game
+from chess_game_interface.two_player_games.two_player_games.player import (
+    Player,
+)
+from chess_game_interface.chess_move import ChessMove
+from chess_game_interface.chess_state import ChessState
 
 
 class ChessGame(Game):

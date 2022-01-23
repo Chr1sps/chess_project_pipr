@@ -1,5 +1,7 @@
-from chess_exceptions import CoordinatesOutOfBoundsException
-from two_player_games.two_player_games.move import Move
+from chess_game_interface.chess_exceptions import (
+    CoordinatesOutOfBoundsException,
+)
+from chess_game_interface.two_player_games.two_player_games.move import Move
 
 
 class ChessMove(Move):

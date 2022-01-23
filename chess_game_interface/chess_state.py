@@ -1,12 +1,22 @@
-from two_player_games.two_player_games.state import State
-from two_player_games.two_player_games.player import Player
-from chess_exceptions import (
+from chess_game_interface.two_player_games.two_player_games.state import State
+from chess_game_interface.two_player_games.two_player_games.player import (
+    Player,
+)
+from chess_game_interface.chess_exceptions import (
     InvalidMoveException,
     IncorrectPieceTypeException,
     WhitePlayerNotInTheGameException,
 )
-from chess_pieces import ChessPiece, Pawn, Knight, Bishop, Rook, Queen, King
-from chess_move import ChessMove
+from chess_game_interface.chess_pieces import (
+    ChessPiece,
+    Pawn,
+    Knight,
+    Bishop,
+    Rook,
+    Queen,
+    King,
+)
+from chess_game_interface.chess_move import ChessMove
 from typing import Iterable, List, Optional
 
 
