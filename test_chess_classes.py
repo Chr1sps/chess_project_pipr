@@ -1,6 +1,7 @@
 from chess_exceptions import (
     CoordinatesOutOfBoundsException,
     InvalidMoveException,
+    WhitePlayerNotInTheGameException,
 )
 from chess_move import ChessMove
 from chess_pieces import Pawn, Knight, Bishop, Rook, Queen, King
@@ -983,6 +984,14 @@ R1          K1       R1 \n"
         ChessMove(4, 0, 5, 0),
     ]
     assert compare_move_tables(king._get_moves(chess_state), expected_moves)
+
+
+def test_state_init_failed_wrong_white_player():
+    player_1 = Player("1")
+    player_2 = Player("2")
+    player_3 = Player("3")
+    with raises(WhitePlayerNotInTheGameException):
+        ChessState(player_1, player_2, player_3)
 
 
 def test_chess_state_init_empty():

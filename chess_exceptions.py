@@ -11,3 +11,10 @@ class IncorrectPieceTypeException(Exception):
 class InvalidMoveException(Exception):
     def __init__(self):
         super().__init__("Invalid move given to the function.")
+
+
+class WhitePlayerNotInTheGameException(Exception):
+    def __init__(self):
+        super().__init__(
+            "White player isn't either the current player or the other player."
+        )
