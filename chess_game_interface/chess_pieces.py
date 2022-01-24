@@ -8,7 +8,7 @@ from chess_game_interface.two_player_games.two_player_games.player import (
 from typing import Iterable, Tuple
 from itertools import product
 from chess_game_interface.chess_move import ChessMove
-from chess_io import load_svg_resize
+from chess_game_interface.load_svg import load_svg_resize
 from chess_game_interface.chess_utils import PIECE_SIZE
 
 
