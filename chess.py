@@ -1,3 +1,4 @@
+from pydoc import cli
 from chess_game_interface.chess_exceptions import InvalidMoveException
 from chess_game_interface.chess_move import ChessMove
 from chess_game_interface.chess_pieces import Knight, Bishop, Rook, Queen
@@ -12,12 +13,14 @@ LIGHT_BROWN = (255, 206, 158)
 DARK_BROWN = (209, 139, 71)
 EDGE_COLOR = (128, 64, 48)
 WHITE = (255, 255, 255)
+BLACK = (0, 0, 0)
 GREEN = (0, 128, 0)
 PIECE_SIZE = 64
 EDGE_SIZE = 16
 BOARD_SIZE = 8 * PIECE_SIZE + 2 * EDGE_SIZE
 BOARD_OFFSET = (WINDOW_HEIGHT - BOARD_SIZE) / 2
 BOARD_OFFSET_CHESS_AREA = BOARD_OFFSET + EDGE_SIZE
+FONT_SIZE = 24
 
 
 class ChessApp:
@@ -26,13 +29,17 @@ class ChessApp:
         pygame.display.set_caption("Chess")
         self.set_icon(icon_pathname)
         self.screen = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
-        self.chess_game = ChessGame()
         self.running = True
+        self.promotion_type = Queen
+        self._set_default_attributes()
+
+    def _set_default_attributes(self):
+        self.chess_game = ChessGame()
         self.move = None
         self.move_start_column = None
         self.move_start_row = None
         self.moves_list = None
-        self.promotion_type = Queen
+        self.resign = None
 
     def set_icon(self, pathname: str):
         icon = load_svg_resize(pathname, PIECE_SIZE)
@@ -52,19 +59,23 @@ class ChessApp:
         pygame.display.set_icon(cropped_icon)
 
     def draw_reset_button(self):
-        font = pygame.font.Font("freesansbold.ttf", 24)
+        font = pygame.font.Font("freesansbold.ttf", FONT_SIZE)
         text = font.render("Reset game", True, WHITE, GREEN)
         self.reset_button = text.get_rect()
-        text_offset_x = self.reset_button.width / 2
-        text_offset_y = self.reset_button.height / 2
+        text_x = (
+            (WINDOW_WIDTH - BOARD_OFFSET - BOARD_SIZE) / 2
+            + BOARD_OFFSET
+            + BOARD_SIZE
+            - self.reset_button.width / 2
+        )
+        text_y = WINDOW_HEIGHT - BOARD_OFFSET - self.reset_button.height
+        self.reset_button.x = text_x
+        self.reset_button.y = text_y
         self.screen.blit(
             text,
             (
-                (WINDOW_WIDTH - BOARD_OFFSET - BOARD_SIZE) / 2
-                + BOARD_OFFSET
-                + BOARD_SIZE
-                - text_offset_x,
-                WINDOW_HEIGHT * 3 / 4 - text_offset_y,
+                text_x,
+                text_y,
             ),
         )
 
@@ -76,7 +87,10 @@ class ChessApp:
             else:
                 is_winner_white = winner == self.chess_game.get_white()
                 winning_side = "White" if is_winner_white else "Black"
-                player_text = f"{winning_side} has won the game."
+                player_text = f"{winning_side} has won."
+        elif self.resign is not None:
+            resigning_side = "White" if self.resign else "Black"
+            player_text = f"{resigning_side} has resigned."
         else:
             is_current_player_white = (
                 self.chess_game.get_current_player()
@@ -85,11 +99,10 @@ class ChessApp:
             player_text = (
                 f"{'White' if is_current_player_white else 'Black'} to move."
             )
-        font = pygame.font.Font("freesansbold.ttf", 24)
+        font = pygame.font.Font("freesansbold.ttf", FONT_SIZE)
         text = font.render(player_text, True, (0, 0, 0))
         text_rect = text.get_rect()
         text_offset_x = text_rect.width / 2
-        text_offset_y = text_rect.height / 2
         self.screen.blit(
             text,
             (
@@ -97,7 +110,33 @@ class ChessApp:
                 + BOARD_OFFSET
                 + BOARD_SIZE
                 - text_offset_x,
-                WINDOW_HEIGHT / 4 - text_offset_y,
+                BOARD_OFFSET,
+            ),
+        )
+
+    def draw_resign_button(self):
+        font = pygame.font.Font("freesansbold.ttf", FONT_SIZE)
+        text = font.render("Resign", True, WHITE, BLACK)
+        self.resign_button = text.get_rect()
+        text_x = (
+            (WINDOW_WIDTH - BOARD_OFFSET - BOARD_SIZE) / 2
+            + BOARD_OFFSET
+            + BOARD_SIZE
+            - self.resign_button.width / 2
+        )
+        text_y = (
+            WINDOW_HEIGHT
+            - BOARD_OFFSET
+            - 2 * FONT_SIZE
+            - self.resign_button.height
+        )
+        self.resign_button.x = text_x
+        self.resign_button.y = text_y
+        self.screen.blit(
+            text,
+            (
+                text_x,
+                text_y,
             ),
         )
 
@@ -140,16 +179,30 @@ class ChessApp:
 
         self.draw_player_message()
         self.draw_reset_button()
+        self.draw_resign_button()
         pygame.display.update()
 
     def handle_click(self, click_pos_x: int, click_pos_y: int):
+        print(
+            self.resign_button.x,
+            self.resign_button.y,
+            self.resign_button.size,
+        )
         board_column = int(
             (click_pos_x - BOARD_OFFSET - EDGE_SIZE) // PIECE_SIZE
         )
         board_row = int(
             7 - ((click_pos_y - BOARD_OFFSET - EDGE_SIZE) // PIECE_SIZE)
         )
-        if board_column in range(8) and board_row in range(8):
+        if (
+            board_column in range(8)
+            and board_row in range(8)
+            and not (
+                self.move is not None
+                and self.chess_game.is_promotion(self.move)
+            )
+            and self.resign is None
+        ):
             if self.chess_game.is_a_current_players_piece(
                 board_column, board_row
             ):
@@ -185,6 +238,15 @@ class ChessApp:
                 self.move_start_column = None
                 self.move_start_row = None
                 self.moves_list = None
+
+        elif self.resign_button.collidepoint(click_pos_x, click_pos_y):
+            self.resign = (
+                self.chess_game.get_current_player()
+                == self.chess_game.get_white()
+            )
+
+        elif self.reset_button.collidepoint(click_pos_x, click_pos_y):
+            self._set_default_attributes()
 
     def handle_move(self):
         if self.move is not None:
