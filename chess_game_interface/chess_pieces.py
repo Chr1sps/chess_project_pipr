@@ -1,3 +1,4 @@
+import pygame
 from chess_game_interface.chess_exceptions import (
     CoordinatesOutOfBoundsException,
 )
@@ -7,6 +8,8 @@ from chess_game_interface.two_player_games.two_player_games.player import (
 from typing import Iterable, Tuple
 from itertools import product
 from chess_game_interface.chess_move import ChessMove
+from chess_io import load_svg_resize
+from chess_game_interface.chess_utils import PIECE_SIZE
 
 
 class ChessState:
@@ -16,6 +19,7 @@ class ChessState:
 
 
 class ChessPiece:
+    icons = {True: None, False: None}
     """
     A class that represents a chess piece. Provides attributes and methods for
     child classes. Shouldn't be called explicitly.
@@ -182,6 +186,16 @@ class ChessPiece:
         """_get_moves method definition for child classes."""
         pass
 
+    @classmethod
+    def draw(
+        self,
+        screen: pygame.Surface,
+        is_white: bool,
+        piece_origin_x: int,
+        piece_origin_y: int,
+    ):
+        screen.blit(self.icons[is_white], (piece_origin_x, piece_origin_y))
+
     def __repr__(self) -> str:
         """Returns object info for debugging (piece type, position)."""
         return f"{type(self).__name__} at \
@@ -193,6 +207,10 @@ class ChessPiece:
 
 
 class Pawn(ChessPiece):
+    icons = {
+        True: load_svg_resize("chess_icons/white_pawn.svg", PIECE_SIZE),
+        False: load_svg_resize("chess_icons/black_pawn.svg", PIECE_SIZE),
+    }
     """
     A class that represents a pawn.
 
@@ -378,6 +396,11 @@ class Pawn(ChessPiece):
 
 
 class Knight(ChessPiece):
+    icons = {
+        True: load_svg_resize("chess_icons/white_knight.svg", PIECE_SIZE),
+        False: load_svg_resize("chess_icons/black_knight.svg", PIECE_SIZE),
+    }
+
     def __str__(self) -> str:
         """Returns a string representing a knight. Used in the __str__ function
         of the ChessState class. Indicates the knight's player."""
@@ -406,6 +429,11 @@ class Knight(ChessPiece):
 
 
 class Bishop(ChessPiece):
+    icons = {
+        True: load_svg_resize("chess_icons/white_bishop.svg", PIECE_SIZE),
+        False: load_svg_resize("chess_icons/black_bishop.svg", PIECE_SIZE),
+    }
+
     def __str__(self) -> str:
         """Returns a string representing a bishop. Used in the __str__ function
         of the ChessState class. Indicates the bishop's player."""
@@ -430,6 +458,10 @@ class Bishop(ChessPiece):
 
 
 class Rook(ChessPiece):
+    icons = {
+        True: load_svg_resize("chess_icons/white_rook.svg", PIECE_SIZE),
+        False: load_svg_resize("chess_icons/black_rook.svg", PIECE_SIZE),
+    }
     """
     A class that represents a rook.
 
@@ -512,6 +544,11 @@ class Rook(ChessPiece):
 
 
 class Queen(ChessPiece):
+    icons = {
+        True: load_svg_resize("chess_icons/white_queen.svg", PIECE_SIZE),
+        False: load_svg_resize("chess_icons/black_queen.svg", PIECE_SIZE),
+    }
+
     def __str__(self) -> str:
         """Returns a string representing a queen. Used in the __str__ function
         of the ChessState class. Indicates the queen's player."""
@@ -539,6 +576,10 @@ class Queen(ChessPiece):
 
 
 class King(ChessPiece):
+    icons = {
+        True: load_svg_resize("chess_icons/white_king.svg", PIECE_SIZE),
+        False: load_svg_resize("chess_icons/black_king.svg", PIECE_SIZE),
+    }
     """
     A class that represents a king.
 

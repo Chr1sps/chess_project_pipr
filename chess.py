@@ -4,22 +4,23 @@ from chess_game_interface.chess_pieces import Knight, Bishop, Rook, Queen
 from chess_game_interface.chess_game import ChessGame
 import pygame
 from chess_io import load_svg_resize
-
-WINDOW_WIDTH = 800
-WINDOW_HEIGHT = 600
-BACKGROUND_COLOR = (96, 96, 96)
-LIGHT_BROWN = (255, 206, 158)
-DARK_BROWN = (209, 139, 71)
-EDGE_COLOR = (128, 64, 48)
-WHITE = (255, 255, 255)
-BLACK = (0, 0, 0)
-GREEN = (0, 128, 0)
-PIECE_SIZE = 64
-EDGE_SIZE = 16
-BOARD_SIZE = 8 * PIECE_SIZE + 2 * EDGE_SIZE
-BOARD_OFFSET = (WINDOW_HEIGHT - BOARD_SIZE) / 2
-BOARD_OFFSET_CHESS_AREA = BOARD_OFFSET + EDGE_SIZE
-FONT_SIZE = 24
+from chess_game_interface.chess_utils import (
+    BACKGROUND_COLOR,
+    BLACK,
+    BOARD_OFFSET,
+    BOARD_OFFSET_CHESS_AREA,
+    BOARD_SIZE,
+    DARK_BROWN,
+    EDGE_COLOR,
+    EDGE_SIZE,
+    FONT_SIZE,
+    GREEN,
+    LIGHT_BROWN,
+    PIECE_SIZE,
+    WHITE,
+    WINDOW_HEIGHT,
+    WINDOW_WIDTH,
+)
 
 
 class ChessApp:
@@ -29,7 +30,7 @@ class ChessApp:
         self.set_icon(icon_pathname)
         self.screen = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
         self.running = True
-        self.promotion_type = Queen
+        self.promotion_type = None
         self._set_default_attributes()
 
     def _set_default_attributes(self):
@@ -154,6 +155,49 @@ class ChessApp:
         radius = PIECE_SIZE / 4
         pygame.draw.circle(self.screen, EDGE_COLOR, center, radius)
 
+    def draw_promotion_selection_box(self):
+        right_side_center_x = (
+            (WINDOW_WIDTH - BOARD_OFFSET - BOARD_SIZE) // 2
+            + BOARD_SIZE
+            + BOARD_OFFSET
+        )
+        right_side_center_y = WINDOW_HEIGHT // 2
+        pygame.draw.rect(
+            self.screen,
+            EDGE_COLOR,
+            (
+                right_side_center_x - PIECE_SIZE // 2 - EDGE_SIZE,
+                right_side_center_y - 2 * PIECE_SIZE - EDGE_SIZE,
+                2 * EDGE_SIZE + PIECE_SIZE,
+                2 * EDGE_SIZE + 4 * PIECE_SIZE,
+            ),
+        )
+        pieces_list = [Queen, Rook, Bishop, Knight]
+        self.promotion_rect_dict = {}
+        for square in range(4):
+            square_origin_x = right_side_center_x - PIECE_SIZE // 2
+            square_origin_y = right_side_center_y + (square - 2) * PIECE_SIZE
+            pygame.draw.rect(
+                self.screen,
+                LIGHT_BROWN if square % 2 else DARK_BROWN,
+                (
+                    square_origin_x,
+                    square_origin_y,
+                    PIECE_SIZE,
+                    PIECE_SIZE,
+                ),
+            )
+            pieces_list[square].draw(
+                self.screen,
+                self.chess_game.get_current_player()
+                == self.chess_game.get_white(),
+                square_origin_x,
+                square_origin_y,
+            )
+            self.promotion_rect_dict[pieces_list[square]] = pygame.Rect(
+                square_origin_x, square_origin_y, PIECE_SIZE, PIECE_SIZE
+            )
+
     def draw_everything(
         self,
     ):
@@ -179,14 +223,11 @@ class ChessApp:
         self.draw_player_message()
         self.draw_reset_button()
         self.draw_resign_button()
+        if self.move is not None and self.chess_game.is_promotion(self.move):
+            self.draw_promotion_selection_box()
         pygame.display.update()
 
     def handle_click(self, click_pos_x: int, click_pos_y: int):
-        print(
-            self.resign_button.x,
-            self.resign_button.y,
-            self.resign_button.size,
-        )
         board_column = int(
             (click_pos_x - BOARD_OFFSET - EDGE_SIZE) // PIECE_SIZE
         )
@@ -238,6 +279,15 @@ class ChessApp:
                 self.move_start_row = None
                 self.moves_list = None
 
+        elif self.move is not None and self.chess_game.is_promotion(self.move):
+            promotion_types = [Queen, Rook, Bishop, Knight]
+            for promotion in promotion_types:
+                if self.promotion_rect_dict[promotion].collidepoint(
+                    click_pos_x, click_pos_y
+                ):
+                    self.promotion_type = promotion
+                    break
+
         elif self.resign_button.collidepoint(click_pos_x, click_pos_y):
             self.resign = (
                 self.chess_game.get_current_player()
@@ -249,7 +299,10 @@ class ChessApp:
 
     def handle_move(self):
         if self.move is not None:
-            if self.chess_game.is_promotion(self.move):
+            if (
+                self.chess_game.is_promotion(self.move)
+                and self.promotion_type is None
+            ):
                 return
             try:
                 self.chess_game.make_move(self.move, self.promotion_type)
@@ -257,6 +310,7 @@ class ChessApp:
                 pass
             self.moves_list = None
             self.move = None
+            self.promotion_type = None
             print(self.move if self.move is not None else "None")
 
 
