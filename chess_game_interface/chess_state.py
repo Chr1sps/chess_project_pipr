@@ -617,7 +617,6 @@ class ChessState(State):
                     font_colour = DARK_BROWN if column % 2 else LIGHT_BROWN
                     column_letter = chr(column + ord("A"))
                     text = font.render(column_letter, True, font_colour)
-                    text_rect = text.get_rect()
                     screen.blit(
                         text,
                         (square_pos_x, square_pos_y + piece_size - font_size),
@@ -628,7 +627,6 @@ class ChessState(State):
                     font = pygame.font.Font("freesansbold.ttf", font_size)
                     font_colour = DARK_BROWN if row % 2 else LIGHT_BROWN
                     text = font.render(str(row + 1), True, font_colour)
-                    text_rect = text.get_rect()
                     screen.blit(
                         text,
                         (square_pos_x, square_pos_y),

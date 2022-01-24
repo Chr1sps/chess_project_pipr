@@ -1,4 +1,3 @@
-from pydoc import cli
 from chess_game_interface.chess_exceptions import InvalidMoveException
 from chess_game_interface.chess_move import ChessMove
 from chess_game_interface.chess_pieces import Knight, Bishop, Rook, Queen
