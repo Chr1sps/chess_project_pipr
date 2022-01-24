@@ -93,10 +93,10 @@ class ChessGame(Game):
 
         Parameters:
 
-        column: int
+        column : int
             an int representing the column of a piece to be checked
 
-        row: int
+        row : int
             an int representing the row of a piece to be checked
         """
         legal_moves = []
@@ -127,14 +127,14 @@ class ChessGame(Game):
 
         Parameters:
 
-        screen: pygame.Surface
+        screen : pygame.Surface
             a pygame.Surface object on which the board will be diplayed
 
-        board_origin_x: int
+        board_origin_x : int
             an int representing the x coordinate of the position from which the
             board will be drawn (top right corner of the board)
 
-        board_origin_y: int
+        board_origin_y : int
             an int representing the y coordinate of the position from which the
             board will be drawn (top right corner of the board)
         """
@@ -148,10 +148,10 @@ class ChessGame(Game):
 
         Parameters:
 
-        column: int
+        column : int
             an int representing the column of a piece to be checked
 
-        row: int
+        row : int
             an int representing the row of a piece to be checked
         """
         piece = self.state._board[row][column]

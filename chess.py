@@ -76,15 +76,29 @@ class ChessApp:
     """
 
     def __init__(self, icon_pathname: str):
+        """
+        ChessApp class constructor.
+
+
+        Parameters:
+
+        icon_pathname : str
+            a string representing the path to the icon image in the svg format
+        """
         pygame.init()
         pygame.display.set_caption("Chess")
-        self.set_icon(icon_pathname)
+        self._set_icon(icon_pathname)
         self.screen = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
         self.running = True
         self.promotion_type = None
+        self.font = pygame.font.Font("freesansbold.ttf", FONT_SIZE)
         self._set_default_attributes()
 
     def _set_default_attributes(self):
+        """
+        Sets some of the attributes needed to their default values. Used when
+        resetting the board.
+        """
         self.chess_game = ChessGame()
         self.move = None
         self.move_start_column = None
@@ -92,7 +106,17 @@ class ChessApp:
         self.moves_list = None
         self.resign = None
 
-    def set_icon(self, pathname: str):
+    def _set_icon(self, pathname: str):
+        """
+        Sets the icon that shows in the top-left corner of the programme.
+
+
+        Parameters:
+
+        pathname : str
+            a string representing the pathname to the icon image in the svg
+            format
+        """
         icon = load_svg_resize(pathname, PIECE_SIZE)
         offset = int(7 * PIECE_SIZE / 64)
         cropped_icon = pygame.Surface(
@@ -109,9 +133,12 @@ class ChessApp:
         )
         pygame.display.set_icon(cropped_icon)
 
-    def draw_reset_button(self):
-        font = pygame.font.Font("freesansbold.ttf", FONT_SIZE)
-        text = font.render("Reset game", True, WHITE, GREEN)
+    def _draw_reset_button(self):
+        """
+        Draws the reset button and assigns the reset_button attribute an
+        appropriate Rect object.
+        """
+        text = self.font.render("Reset game", True, WHITE, GREEN)
         self.reset_button = text.get_rect()
         text_x = (
             (WINDOW_WIDTH - BOARD_OFFSET - BOARD_SIZE) / 2
@@ -130,7 +157,12 @@ class ChessApp:
             ),
         )
 
-    def draw_player_message(self):
+    def _draw_player_message(self):
+        """
+        Draws a message to the right of the board. The message contains info
+        about whose turn is it, if a side has won, if there is a draw of if a
+        side has resigned.
+        """
         if self.chess_game.is_finished():
             winner = self.chess_game.get_winner()
             if winner is None:
@@ -150,8 +182,7 @@ class ChessApp:
             player_text = (
                 f"{'White' if is_current_player_white else 'Black'} to move."
             )
-        font = pygame.font.Font("freesansbold.ttf", FONT_SIZE)
-        text = font.render(player_text, True, (0, 0, 0))
+        text = self.font.render(player_text, True, (0, 0, 0))
         text_rect = text.get_rect()
         text_offset_x = text_rect.width / 2
         self.screen.blit(
@@ -165,9 +196,12 @@ class ChessApp:
             ),
         )
 
-    def draw_resign_button(self):
-        font = pygame.font.Font("freesansbold.ttf", FONT_SIZE)
-        text = font.render("Resign", True, WHITE, BLACK)
+    def _draw_resign_button(self):
+        """
+        Draws the resign button and assigns the resign_button attribute an
+        appropriate Rect object.
+        """
+        text = self.font.render("Resign", True, WHITE, BLACK)
         self.resign_button = text.get_rect()
         text_x = (
             (WINDOW_WIDTH - BOARD_OFFSET - BOARD_SIZE) / 2
@@ -191,7 +225,18 @@ class ChessApp:
             ),
         )
 
-    def draw_move(self, move: ChessMove):
+    def _draw_move(self, move: ChessMove):
+        """
+        Method used for drawing a move from the moves_list attribute for the
+        draw_everything function.
+
+
+        Parameters:
+
+        move : ChessMove
+            a ChessMove object representing a move possible to be made using a
+            given piece taken from the moves_list attribute
+        """
         end_column, end_row = move.end_column(), move.end_row()
         center = (
             BOARD_OFFSET
@@ -206,7 +251,12 @@ class ChessApp:
         radius = PIECE_SIZE / 4
         pygame.draw.circle(self.screen, EDGE_COLOR, center, radius)
 
-    def draw_promotion_selection_box(self):
+    def _draw_promotion_selection_box(self):
+        """
+        Method used for drawing the promotion selection box as well as
+        generating the promotion_rect_dict attribute used for checking which
+        of the promotion types has been chosen.
+        """
         right_side_center_x = (
             (WINDOW_WIDTH - BOARD_OFFSET - BOARD_SIZE) // 2
             + BOARD_SIZE
@@ -252,6 +302,10 @@ class ChessApp:
     def draw_everything(
         self,
     ):
+        """
+        This method combines all the other draw methods in this class in order
+        to draw the entire screen with all the elements that are needed.
+        """
         self.screen.fill(BACKGROUND_COLOR)
 
         pygame.draw.rect(
@@ -262,23 +316,35 @@ class ChessApp:
 
         self.chess_game.draw(
             self.screen,
-            PIECE_SIZE,
             BOARD_OFFSET_CHESS_AREA,
             BOARD_OFFSET_CHESS_AREA,
         )
 
         if self.moves_list is not None:
             for move in self.moves_list:
-                self.draw_move(move)
+                self._draw_move(move)
 
-        self.draw_player_message()
-        self.draw_reset_button()
-        self.draw_resign_button()
+        self._draw_player_message()
+        self._draw_reset_button()
+        self._draw_resign_button()
         if self.move is not None and self.chess_game.is_promotion(self.move):
-            self.draw_promotion_selection_box()
+            self._draw_promotion_selection_box()
         pygame.display.update()
 
     def handle_click(self, click_pos_x: int, click_pos_y: int):
+        """
+        This method handles all the scenarios that can happen after a mouse
+        click has been detected.
+
+
+        Parameters:
+
+        click_pos_x : int
+            an int representing the x coordinate of the mouse cursor
+
+        click_pos_y : int
+            an int representing the y coordinate of the mouse cursor
+        """
         board_column = int(
             (click_pos_x - BOARD_OFFSET - EDGE_SIZE) // PIECE_SIZE
         )
@@ -294,12 +360,14 @@ class ChessApp:
             )
             and self.resign is None
         ):
+
             if self.chess_game.is_a_current_players_piece(
                 board_column, board_row
             ):
                 self.moves_list = self.chess_game.get_moves(
                     board_column, board_row
                 )
+
                 if self.moves_list:
                     self.move_start_column, self.move_start_row = (
                         board_column,
@@ -314,32 +382,39 @@ class ChessApp:
                     and board_row == self.move_start_row
                 )
             ):
+
                 self.move = ChessMove(
                     self.move_start_column,
                     self.move_start_row,
                     board_column,
                     board_row,
                 )
+
                 self.move_start_column = None
                 self.move_start_row = None
                 self.moves_list = None
-                print("A move has been prepared.")
+
             else:
+
                 self.move = None
                 self.move_start_column = None
                 self.move_start_row = None
                 self.moves_list = None
 
         elif self.move is not None and self.chess_game.is_promotion(self.move):
+
             promotion_types = [Queen, Rook, Bishop, Knight]
             for promotion in promotion_types:
+
                 if self.promotion_rect_dict[promotion].collidepoint(
                     click_pos_x, click_pos_y
                 ):
+
                     self.promotion_type = promotion
                     break
 
         elif self.resign_button.collidepoint(click_pos_x, click_pos_y):
+
             self.resign = (
                 self.chess_game.get_current_player()
                 == self.chess_game.get_white()
@@ -349,6 +424,9 @@ class ChessApp:
             self._set_default_attributes()
 
     def handle_move(self):
+        """
+        Method used for handling moves and pawn promotions.
+        """
         if self.move is not None:
             if (
                 self.chess_game.is_promotion(self.move)
@@ -362,7 +440,6 @@ class ChessApp:
             self.moves_list = None
             self.move = None
             self.promotion_type = None
-            print(self.move if self.move is not None else "None")
 
 
 def main():
