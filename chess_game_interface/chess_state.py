@@ -535,7 +535,7 @@ class ChessState(State):
         get_moves_list = new_state.get_moves()
         for move in get_moves_list:
             try:
-                new_state.make_move(move)
+                new_state.make_move(move, Queen)
                 return False
             except InvalidMoveException:
                 continue
