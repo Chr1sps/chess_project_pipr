@@ -24,6 +24,57 @@ from chess_game_interface.chess_utils import (
 
 
 class ChessApp:
+    """
+    A class responsible for the chess application.
+
+
+    Attributes:
+
+    screen : pygame.Surface
+        a pygame.Surface object representing the window area
+
+    running : bool
+        a bool responsible for the infinite loop in the main programme
+
+    promotion_type : type
+        a ChessPiece class that determines the piece that a pawn will be
+        promoted to
+
+    chess_game : ChessGame
+        a ChessGame object representing an instance of a game of chess
+
+    move : ChessMove
+        a ChessMove object representing a move that is a result of user input
+
+    move_start_column : int
+        an int representing a starting positions column in a move. By default
+        set to None. Used in detecting if the first square for a chess move has
+        been selected
+
+    move_start_column : int
+        an int representing a starting positions row in a move. By default set
+        to None. Used in detecting if the first square for a chess move has
+        been selected
+
+    moves_list : Iterable[ChessMove]
+        a list representing all the possible moves the selected piece can make
+
+    resign : bool
+        a bool indicating the side which resigned (True for white, False for
+        black). Defaults to None, which signals that noone has resigned.
+
+    reset_button : pygame.Rect
+        a pygame.Rect object used for detecting if the reset button has been
+        clicked
+
+    resign_button : pygame.Rect
+        a pygame.Rect object used for detecting if the resign button has been
+        clicked
+
+    promotion_rect_dict : Dict[type, pygame.rect]
+        a dictionary used for detecting clicks in the pawn promotion panel
+    """
+
     def __init__(self, icon_pathname: str):
         pygame.init()
         pygame.display.set_caption("Chess")

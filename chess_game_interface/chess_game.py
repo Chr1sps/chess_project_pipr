@@ -82,12 +82,25 @@ class ChessGame(Game):
         self.state = self.state.make_move(move, promotion_type)
 
     def get_white(self) -> Player:
+        """Return the player that is playing white."""
         return self.state._white
 
     def get_moves(self, column: int, row: int) -> Iterable[ChessMove]:
+        """
+        Returns a list of all the legal moves for a given piece position on the
+        board.
+
+
+        Parameters:
+
+        column: int
+            an int representing the column of a piece to be checked
+
+        row: int
+            an int representing the row of a piece to be checked
+        """
         legal_moves = []
         get_moves_list = self.state._board[row][column]._get_moves(self.state)
-        print([m for m in get_moves_list])
         for move in get_moves_list:
             try:
                 new_state = ChessState(
@@ -105,13 +118,42 @@ class ChessGame(Game):
     def draw(
         self,
         screen: pygame.Surface,
-        piece_size: int,
         board_origin_x: int,
         board_origin_y: int,
     ):
-        self.state.draw(screen, piece_size, board_origin_x, board_origin_y)
+        """
+        Calls the draw() method of the state attribute to draw the chess board.
+
+
+        Parameters:
+
+        screen: pygame.Surface
+            a pygame.Surface object on which the board will be diplayed
+
+        board_origin_x: int
+            an int representing the x coordinate of the position from which the
+            board will be drawn (top right corner of the board)
+
+        board_origin_y: int
+            an int representing the y coordinate of the position from which the
+            board will be drawn (top right corner of the board)
+        """
+        self.state.draw(screen, board_origin_x, board_origin_y)
 
     def is_a_current_players_piece(self, column: int, row: int) -> bool:
+        """
+        Returns true if the piece on a given column and a given row belongs to
+        the player currently playing a move.
+
+
+        Parameters:
+
+        column: int
+            an int representing the column of a piece to be checked
+
+        row: int
+            an int representing the row of a piece to be checked
+        """
         piece = self.state._board[row][column]
         return (
             piece is not None and piece.player() == self.state._current_player

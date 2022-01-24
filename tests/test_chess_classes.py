@@ -1416,6 +1416,53 @@ def test_make_move_castles():
     )
 
 
+def test_make_move_castles_black():
+    player_1 = Player("1")
+    player_2 = Player("2")
+    board = (
+        [
+            [
+                None,
+                None,
+                None,
+                None,
+                King(4, 0, player_1),
+                None,
+                None,
+                Rook(7, 0, player_1),
+            ]
+        ]
+        + [[None for _ in range(8)] for _ in range(6)]
+        + [
+            [
+                None,
+                None,
+                None,
+                None,
+                King(4, 7, player_2),
+                None,
+                None,
+                Rook(7, 7, player_2),
+            ]
+        ]
+    )
+    state = ChessState(player_2, player_1, player_1, board)
+    move = ChessMove(4, 7, 6, 7)
+    new_state = state.make_move(move)
+    assert (
+        str(new_state)
+        == "\
+               R2 K2    \n\
+                        \n\
+                        \n\
+                        \n\
+                        \n\
+                        \n\
+                        \n\
+            K1       R1 \n"
+    )
+
+
 def test_make_move_cant_castle_blocked():
     player_1 = Player("1")
     player_2 = Player("2")

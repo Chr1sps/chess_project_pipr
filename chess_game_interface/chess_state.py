@@ -19,9 +19,11 @@ from chess_game_interface.chess_pieces import (
 from chess_game_interface.chess_move import ChessMove
 from typing import Iterable, List, Optional
 import pygame
-
-LIGHT_BROWN = (255, 206, 158)
-DARK_BROWN = (209, 139, 71)
+from chess_game_interface.chess_utils import (
+    PIECE_SIZE,
+    LIGHT_BROWN,
+    DARK_BROWN,
+)
 
 
 class ChessState(State):
@@ -396,9 +398,10 @@ class ChessState(State):
 
         king_shift_dir = move.end_column() - move.start_column()
         king_shift_dir = king_shift_dir // abs(king_shift_dir)
+        king_row = 0 if self._current_player == self._white else 7
 
         squares_to_check = (
-            (column, 0)
+            (column, king_row)
             for column in range(
                 4, move.end_column() + king_shift_dir, king_shift_dir
             )
@@ -412,11 +415,11 @@ class ChessState(State):
 
         else:
 
-            new_board[0][4 + king_shift_dir] = self._make_piece(
-                Rook, 4 + king_shift_dir, 0, self._current_player, False
+            new_board[king_row][4 + king_shift_dir] = self._make_piece(
+                Rook, 4 + king_shift_dir, king_row, self._current_player, False
             )
 
-            new_board[0][int(3.5 + 3.5 * king_shift_dir)] = None
+            new_board[king_row][int(3.5 + 3.5 * king_shift_dir)] = None
 
         return new_board
 
@@ -481,6 +484,8 @@ class ChessState(State):
         if type(moved_piece) == King and move in (
             ChessMove(4, 0, 2, 0),
             ChessMove(4, 0, 6, 0),
+            ChessMove(4, 7, 2, 7),
+            ChessMove(4, 7, 6, 7),
         ):
             new_board = self._evaluate_castling_scenarios(
                 move, moved_piece, new_board
@@ -548,40 +553,54 @@ class ChessState(State):
     def draw(
         self,
         screen: pygame.Surface,
-        piece_size: int,
         board_origin_x: int,
         board_origin_y: int,
     ):
+        """
+        Method used for drawing the chess board on a pygame surface.
+
+
+        Parameters:
+
+        screen : pygame.Surface
+            a pygame.Surface object on which the board will be diplayed
+
+        board_origin_x : int
+            an int representing the x coordinate of the position from which the
+            board will be drawn (top right corner of the board)
+
+        board_origin_y : int
+            an int representing the y coordinate of the position from which the
+            board will be drawn (top right corner of the board)
+        """
+        font_size = PIECE_SIZE // 4
+        font = pygame.font.Font("freesansbold.ttf", font_size)
         for row in range(7, -1, -1):
             for column in range(8):
-                square_pos_x = board_origin_x + column * piece_size
-                square_pos_y = board_origin_y + (7 - row) * piece_size
+                square_pos_x = board_origin_x + column * PIECE_SIZE
+                square_pos_y = board_origin_y + (7 - row) * PIECE_SIZE
                 if (row + column) % 2:
                     pygame.draw.rect(
                         screen,
                         LIGHT_BROWN,
-                        (square_pos_x, square_pos_y, piece_size, piece_size),
+                        (square_pos_x, square_pos_y, PIECE_SIZE, PIECE_SIZE),
                     )
                 else:
                     pygame.draw.rect(
                         screen,
                         DARK_BROWN,
-                        (square_pos_x, square_pos_y, piece_size, piece_size),
+                        (square_pos_x, square_pos_y, PIECE_SIZE, PIECE_SIZE),
                     )
                 if row == 0:
-                    font_size = piece_size // 5
-                    font = pygame.font.Font("freesansbold.ttf", font_size)
                     font_colour = DARK_BROWN if column % 2 else LIGHT_BROWN
                     column_letter = chr(column + ord("A"))
                     text = font.render(column_letter, True, font_colour)
                     screen.blit(
                         text,
-                        (square_pos_x, square_pos_y + piece_size - font_size),
+                        (square_pos_x, square_pos_y + PIECE_SIZE - font_size),
                     )
 
                 if column == 0:
-                    font_size = piece_size // 5
-                    font = pygame.font.Font("freesansbold.ttf", font_size)
                     font_colour = DARK_BROWN if row % 2 else LIGHT_BROWN
                     text = font.render(str(row + 1), True, font_colour)
                     screen.blit(
