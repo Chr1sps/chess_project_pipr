@@ -1,9 +1,13 @@
+from typing import Iterable
+from chess_game_interface.chess_pieces import Queen
 from chess_game_interface.two_player_games.two_player_games.game import Game
 from chess_game_interface.two_player_games.two_player_games.player import (
     Player,
 )
 from chess_game_interface.chess_move import ChessMove
 from chess_game_interface.chess_state import ChessState
+from chess_game_interface.chess_exceptions import InvalidMoveException
+import pygame
 
 
 class ChessGame(Game):
@@ -76,3 +80,39 @@ class ChessGame(Game):
             promote
         """
         self.state = self.state.make_move(move, promotion_type)
+
+    def get_white(self) -> Player:
+        return self.state._white
+
+    def get_moves(self, column: int, row: int) -> Iterable[ChessMove]:
+        legal_moves = []
+        get_moves_list = self.state._board[row][column]._get_moves(self.state)
+        print([m for m in get_moves_list])
+        for move in get_moves_list:
+            try:
+                new_state = ChessState(
+                    self.state._current_player,
+                    self.state._other_player,
+                    self.state._white,
+                    self.state._board,
+                )
+                new_state.make_move(move, Queen)
+                legal_moves.append(move)
+            except InvalidMoveException:
+                continue
+        return legal_moves
+
+    def draw(
+        self,
+        screen: pygame.Surface,
+        piece_size: int,
+        board_origin_x: int,
+        board_origin_y: int,
+    ):
+        self.state.draw(screen, piece_size, board_origin_x, board_origin_y)
+
+    def is_a_current_players_piece(self, column: int, row: int) -> bool:
+        piece = self.state._board[row][column]
+        return (
+            piece is not None and piece.player() == self.state._current_player
+        )

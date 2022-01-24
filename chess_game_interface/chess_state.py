@@ -18,6 +18,11 @@ from chess_game_interface.chess_pieces import (
 )
 from chess_game_interface.chess_move import ChessMove
 from typing import Iterable, List, Optional
+import pygame
+from chess_io import load_svg_resize
+
+LIGHT_BROWN = (255, 206, 158)
+DARK_BROWN = (209, 139, 71)
 
 
 class ChessState(State):
@@ -520,10 +525,13 @@ class ChessState(State):
         Returns True if the game has been finished (there are no more legal
         moves to be made).
         """
-        get_moves_list = self.get_moves()
+        new_state = ChessState(
+            self._current_player, self._other_player, self._white, self._board
+        )
+        get_moves_list = new_state.get_moves()
         for move in get_moves_list:
             try:
-                self.make_move(move)
+                new_state.make_move(move)
                 return False
             except InvalidMoveException:
                 continue
@@ -537,6 +545,80 @@ class ChessState(State):
         if self.is_finished() and self._is_in_check():
             return self._other_player
         return None
+
+    def draw(
+        self,
+        screen: pygame.Surface,
+        piece_size: int,
+        board_origin_x: int,
+        board_origin_y: int,
+    ):
+        piece_image_dict = {
+            True: {
+                Pawn: load_svg_resize(
+                    "chess_icons/white_pawn.svg", piece_size
+                ),
+                Knight: load_svg_resize(
+                    "chess_icons/white_knight.svg", piece_size
+                ),
+                Bishop: load_svg_resize(
+                    "chess_icons/white_bishop.svg", piece_size
+                ),
+                Rook: load_svg_resize(
+                    "chess_icons/white_rook.svg", piece_size
+                ),
+                Queen: load_svg_resize(
+                    "chess_icons/white_queen.svg", piece_size
+                ),
+                King: load_svg_resize(
+                    "chess_icons/white_king.svg", piece_size
+                ),
+            },
+            False: {
+                Pawn: load_svg_resize(
+                    "chess_icons/black_pawn.svg", piece_size
+                ),
+                Knight: load_svg_resize(
+                    "chess_icons/black_knight.svg", piece_size
+                ),
+                Bishop: load_svg_resize(
+                    "chess_icons/black_bishop.svg", piece_size
+                ),
+                Rook: load_svg_resize(
+                    "chess_icons/black_rook.svg", piece_size
+                ),
+                Queen: load_svg_resize(
+                    "chess_icons/black_queen.svg", piece_size
+                ),
+                King: load_svg_resize(
+                    "chess_icons/black_king.svg", piece_size
+                ),
+            },
+        }
+        for row in range(7, -1, -1):
+            for column in range(8):
+                square_pos_x = board_origin_x + column * piece_size
+                square_pos_y = board_origin_y + (7 - row) * piece_size
+                if (row + column) % 2:
+                    pygame.draw.rect(
+                        screen,
+                        LIGHT_BROWN,
+                        (square_pos_x, square_pos_y, piece_size, piece_size),
+                    )
+                else:
+                    pygame.draw.rect(
+                        screen,
+                        DARK_BROWN,
+                        (square_pos_x, square_pos_y, piece_size, piece_size),
+                    )
+                piece = self._board[row][column]
+                if piece is not None:
+                    screen.blit(
+                        piece_image_dict[piece.player() == self._white][
+                            type(piece)
+                        ],
+                        (square_pos_x, square_pos_y),
+                    )
 
     def __str__(self) -> str:
         """Returns a string representing the current state of the board."""

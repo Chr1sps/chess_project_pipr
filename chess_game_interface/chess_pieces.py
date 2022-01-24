@@ -299,6 +299,7 @@ class Pawn(ChessPiece):
             )
         if (
             self._first_move
+            and state._board[self._row + row_shift][self._column] is None
             and state._board[self._row + 2 * row_shift][self._column] is None
         ):
             result.append(
