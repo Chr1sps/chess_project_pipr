@@ -86,6 +86,8 @@ class ChessApp:
             a string representing the path to the icon image in the svg format
         """
         pygame.init()
+        pygame.mixer.init()
+        self.move_sound = pygame.mixer.Sound("sounds/chess_move.wav")
         pygame.display.set_caption("Chess")
         self._set_icon(icon_pathname)
         self.screen = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
@@ -435,6 +437,7 @@ class ChessApp:
                 return
             try:
                 self.chess_game.make_move(self.move, self.promotion_type)
+                self.move_sound.play()
             except InvalidMoveException:
                 pass
             self.moves_list = None
